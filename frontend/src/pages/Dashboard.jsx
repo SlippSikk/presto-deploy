@@ -3,7 +3,7 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
+  Grid2,
   Card,
   CardContent,
   CardActions,
@@ -13,11 +13,16 @@ import {
   DialogActions,
   TextField,
   Alert,
+  Box,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { getPresentations, createPresentation } from '../services/presentationApi'; // To be implemented
+import PresentationCard from '../components/PresentationCard'; // Extracted component
 
+/**
+ * Dashboard component that displays a list of presentations and allows creating new ones.
+ */
 const Dashboard = () => {
   const { auth } = useContext(AuthContext);
   const [presentations, setPresentations] = useState([]);
@@ -27,8 +32,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchPresentations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Fetches all presentations for the authenticated user.
+   */
   const fetchPresentations = async () => {
     try {
       const response = await getPresentations(); // API call to get presentations
@@ -38,6 +47,9 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Handles the creation of a new presentation.
+   */
   const handleCreatePresentation = async () => {
     if (!newPresentationName.trim()) {
       setError('Presentation name cannot be empty');
@@ -59,46 +71,26 @@ const Dashboard = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
-      {error && <Alert severity="error" onClose={() => setError('')}>{error}</Alert>}
-      <Button variant="contained" color="primary" onClick={() => setOpen(true)} sx={{ mb: 3 }}>
+      {error && (
+        <Alert severity="error" onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setOpen(true)}
+        sx={{ mb: 3 }}
+      >
         New Presentation
       </Button>
-      <Grid container spacing={3}>
+      <Grid2 container spacing={3}>
         {presentations.map((presentation) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{presentation.name}</Typography>
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 0,
-                    paddingTop: '50%', // 2:1 ratio
-                    backgroundColor: presentation.thumbnail ? 'transparent' : 'grey.300',
-                    backgroundImage: presentation.thumbnail ? `url(${presentation.thumbnail})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    marginBottom: 2,
-                  }}
-                />
-                {presentation.description && (
-                  <Typography variant="body2" color="textSecondary">
-                    {presentation.description}
-                  </Typography>
-                )}
-                <Typography variant="caption">
-                  {presentation.slides.length} {presentation.slides.length === 1 ? 'Slide' : 'Slides'}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" component={Link} to={`/presentation/${presentation.id}`}>
-                  Open
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+          <Grid2 item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
+            <PresentationCard presentation={presentation} />
+          </Grid2>
         ))}
-      </Grid>
+      </Grid2>
 
       {/* Create Presentation Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)}>
