@@ -8,7 +8,18 @@ import PrivateRoute from './components/PrivateRoute';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const theme = createTheme({
-  // Customize your MUI theme here
+  palette: {
+    primary: {
+      main: '#1976d2', // Customize your primary color
+    },
+    secondary: {
+      main: '#dc004e', // Customize your secondary color
+    },
+  },
+  typography: {
+    // Customize typography if needed
+  },
+  // Add more customizations as needed
 });
 
 function App() {

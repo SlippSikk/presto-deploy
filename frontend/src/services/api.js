@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/admin/auth'; // Adjust if your backend runs elsewhere
+const API_URL = 'http://localhost:5005/admin/auth'; // Adjust if your backend runs elsewhere
 
 // Create an Axios instance
 const api = axios.create({
