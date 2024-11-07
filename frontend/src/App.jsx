@@ -7,6 +7,10 @@ import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+const theme = createTheme({
+  // Customize your MUI theme here
+});
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
