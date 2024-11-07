@@ -16,16 +16,11 @@ const theme = createTheme({
       main: '#dc004e', // Customize your secondary color
     },
   },
-  typography: {
-    // Customize typography if needed
-  },
-  // Add more customizations as needed
 });
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <Router>
         <Navbar />
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -40,7 +35,6 @@ function App() {
             }
           />
         </Routes>
-      </Router>
     </ThemeProvider>
   );
 }
