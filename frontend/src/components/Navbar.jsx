@@ -6,6 +6,9 @@ import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
+/**
+ * Navbar component that displays navigation links based on authentication state.
+ */
 const Navbar = () => {
   const { auth, logout } = useContext(AuthContext);
 
