@@ -28,6 +28,7 @@ const PresentationCard = ({ presentation }) => {
             backgroundPosition: 'center',
             marginBottom: 2,
           }}
+          aria-label="Presentation Thumbnail"
         />
         {presentation.description && (
           <Typography variant="body2" color="textSecondary" gutterBottom>
