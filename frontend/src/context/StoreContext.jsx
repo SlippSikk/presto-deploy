@@ -16,7 +16,7 @@ export const StoreContext = createContext();
  * @returns {JSX.Element} StoreContext.Provider with store data and management functions.
  */
 export const StoreProvider = ({ children }) => {
-  const { auth } = useContext(AuthContext);
+  const { isAuthenticated, loading: authLoading, auth } = useContext(AuthContext);
   const [store, setStoreState] = useState({ presentations: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,8 +26,9 @@ export const StoreProvider = ({ children }) => {
    */
   useEffect(() => {
     const fetchStore = async () => {
-      if (auth.token) {
+      if (isAuthenticated) {
         try {
+          setLoading(true);
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
 
@@ -41,6 +42,7 @@ export const StoreProvider = ({ children }) => {
         } catch (err) {
           console.error('Error fetching store data:', err); // Enhanced error logging
           setError('Failed to load store data.');
+          setStoreState({ presentations: [] });
           setLoading(false);
         }
       } else {
@@ -50,8 +52,7 @@ export const StoreProvider = ({ children }) => {
     };
 
     fetchStore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.token]);
+  }, [isAuthenticated]);
 
   /**
    * Updates the entire store on the backend.
@@ -62,6 +63,7 @@ export const StoreProvider = ({ children }) => {
     try {
       await setStore(updatedStore); // Ensure backend accepts store data directly
       setStoreState(updatedStore);
+      console.log('Store updated successfully.');
     } catch (err) {
       console.error('Error updating store data:', err);
       setError('Failed to update store data.');
