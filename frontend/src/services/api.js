@@ -6,7 +6,7 @@ import axios from 'axios';
  * Base URL for the API.
  * Adjust this if your backend runs on a different URL or port.
  */
-const API_URL = 'http://localhost:5005/admin';
+const API_URL = 'http://localhost:5005';
 
 /**
  * Axios instance configured with the base URL.
@@ -34,19 +34,19 @@ api.interceptors.request.use(
  * Authentication API call to log in a user.
  *
  */
-export const login = (email, password) => api.post('/auth/login', { email, password });
+export const login = (email, password) => api.post('/admin/auth/login', { email, password });
 
 /**
  * Authentication API call to register a new user.
  *
  */
-export const register = (email, password, name) => api.post('/auth/register', { email, password, name });
+export const register = (email, password, name) => api.post('/admin/auth/register', { email, password, name });
 
 /**
  * Authentication API call to log out the current user.
  *
  */
-export const logout = () => api.post('/auth/logout');
+export const logout = () => api.post('/admin/auth/logout');
 
 /**
  * Fetches the store data for the authenticated user.
