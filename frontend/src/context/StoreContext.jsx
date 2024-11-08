@@ -29,9 +29,17 @@ export const StoreProvider = ({ children }) => {
       if (auth.token) {
         try {
           const response = await getStore();
-          setStoreState(response.data); // Changed from response.data.store to response.data
+          console.log('Store Data from API:', response.data); // Debugging line
+
+          // Defensive assignment: Ensure presentations is always an array
+          const fetchedStore = response.data && Array.isArray(response.data.presentations)
+            ? response.data
+            : { presentations: [] };
+
+          setStoreState(fetchedStore);
           setLoading(false);
         } catch (err) {
+          console.error('Error fetching store data:', err); // Enhanced error logging
           setError('Failed to load store data.');
           setLoading(false);
         }
@@ -55,6 +63,7 @@ export const StoreProvider = ({ children }) => {
       await setStore(updatedStore); // Ensure backend accepts store data directly
       setStoreState(updatedStore);
     } catch (err) {
+      console.error('Error updating store data:', err);
       setError('Failed to update store data.');
     }
   };
