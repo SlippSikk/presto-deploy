@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -14,15 +14,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { Edit } from '@mui/icons-material';
-import {
-  getPresentationById,
-  updatePresentation,
-  deletePresentation,
-  addSlide,
-  updateSlide,
-  deleteSlide,
-} from '../services/presentationApi';
-
+import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideNumber from '../components/SlideNumber';
 
@@ -32,46 +24,34 @@ import SlideNumber from '../components/SlideNumber';
 const PresentationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [presentation, setPresentation] = useState(null);
+  const {
+    store,
+    error,
+    addSlide,
+    updatePresentation,
+    deletePresentation,
+    updateSlide,
+    deleteSlide,
+  } = useContext(StoreContext);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditTitleDialog, setOpenEditTitleDialog] = useState(false);
   const [openEditThumbnailDialog, setOpenEditThumbnailDialog] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newThumbnailUrl, setNewThumbnailUrl] = useState('');
-  const [error, setError] = useState('');
+  const [dialogError, setDialogError] = useState('');
 
-  useEffect(() => {
-    fetchPresentation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  const presentation = store.presentations.find((p) => p.id === id);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft' && currentSlideIndex > 0) {
-        setCurrentSlideIndex(currentSlideIndex - 1);
-      }
-      if (e.key === 'ArrowRight' && currentSlideIndex < presentation.slides.length - 1) {
-        setCurrentSlideIndex(currentSlideIndex + 1);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSlideIndex, presentation?.slides.length]);
+  if (!presentation) {
+    return (
+      <Container>
+        <Typography variant="h6">Presentation not found.</Typography>
+      </Container>
+    );
+  }
 
-  /**
-   * Fetches the presentation data by ID.
-   */
-  const fetchPresentation = async () => {
-    try {
-      const response = await getPresentationById(id);
-      setPresentation(response.data.presentation);
-      setCurrentSlideIndex(0);
-    } catch (err) {
-      setError('Failed to load presentation');
-    }
-  };
+  const currentSlide = presentation.slides[currentSlideIndex] || {};
 
   /**
    * Handles the deletion of the entire presentation.
@@ -81,7 +61,7 @@ const PresentationPage = () => {
       await deletePresentation(id);
       navigate('/dashboard');
     } catch (err) {
-      setError('Failed to delete presentation');
+      setDialogError('Failed to delete presentation.');
     }
   };
 
@@ -90,17 +70,17 @@ const PresentationPage = () => {
    */
   const handleUpdateTitle = async () => {
     if (!newTitle.trim()) {
-      setError('Title cannot be empty');
+      setDialogError('Title cannot be empty');
       return;
     }
+    const updatedPresentation = { ...presentation, name: newTitle };
     try {
-      await updatePresentation(id, { name: newTitle });
-      setPresentation({ ...presentation, name: newTitle });
+      await updatePresentation(id, updatedPresentation);
       setOpenEditTitleDialog(false);
       setNewTitle('');
-      setError('');
+      setDialogError('');
     } catch (err) {
-      setError('Failed to update title');
+      setDialogError('Failed to update title');
     }
   };
 
@@ -108,13 +88,14 @@ const PresentationPage = () => {
    * Handles updating the presentation thumbnail.
    */
   const handleUpdateThumbnail = async () => {
+    const updatedPresentation = { ...presentation, thumbnail: newThumbnailUrl };
     try {
-      await updatePresentation(id, { thumbnail: newThumbnailUrl });
-      setPresentation({ ...presentation, thumbnail: newThumbnailUrl });
+      await updatePresentation(id, updatedPresentation);
       setOpenEditThumbnailDialog(false);
       setNewThumbnailUrl('');
+      setDialogError('');
     } catch (err) {
-      setError('Failed to update thumbnail');
+      setDialogError('Failed to update thumbnail');
     }
   };
 
@@ -122,15 +103,15 @@ const PresentationPage = () => {
    * Handles adding a new slide to the presentation.
    */
   const handleAddSlide = async () => {
+    const newSlide = {
+      id: `slide-${Date.now()}`, // Simple unique ID; consider using UUID in production
+      content: '',
+    };
     try {
-      const response = await addSlide(id, '');
-      setPresentation({
-        ...presentation,
-        slides: [...presentation.slides, response.data.slide],
-      });
-      setCurrentSlideIndex(presentation.slides.length);
+      await addSlide(id, newSlide);
+      setCurrentSlideIndex(presentation.slides.length); // Navigate to the new slide
     } catch (err) {
-      setError('Failed to add slide');
+      setDialogError('Failed to add slide');
     }
   };
 
@@ -139,17 +120,15 @@ const PresentationPage = () => {
    */
   const handleDeleteSlide = async () => {
     if (presentation.slides.length === 1) {
-      setError('Cannot delete the only slide. Consider deleting the presentation.');
+      setDialogError('Cannot delete the only slide.');
       return;
     }
+    const slideId = currentSlide.id;
     try {
-      const slideId = presentation.slides[currentSlideIndex].id;
       await deleteSlide(id, slideId);
-      const updatedSlides = presentation.slides.filter((_, idx) => idx !== currentSlideIndex);
-      setPresentation({ ...presentation, slides: updatedSlides });
       setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
     } catch (err) {
-      setError('Failed to delete slide');
+      setDialogError('Failed to delete slide');
     }
   };
 
@@ -159,15 +138,11 @@ const PresentationPage = () => {
    * @param {string} newContent - The updated content for the slide.
    */
   const handleUpdateSlideContent = async (newContent) => {
+    const updatedSlide = { ...currentSlide, content: newContent };
     try {
-      const slideId = presentation.slides[currentSlideIndex].id;
-      await updateSlide(id, slideId, { content: newContent });
-      const updatedSlides = presentation.slides.map((slide, idx) =>
-        idx === currentSlideIndex ? { ...slide, content: newContent } : slide
-      );
-      setPresentation({ ...presentation, slides: updatedSlides });
+      await updateSlide(id, currentSlide.id, updatedSlide);
     } catch (err) {
-      setError('Failed to update slide');
+      setDialogError('Failed to update slide content');
     }
   };
 
@@ -178,15 +153,23 @@ const PresentationPage = () => {
     navigate('/dashboard');
   };
 
-  if (!presentation) {
-    return (
-      <Container>
-        <Typography>Loading...</Typography>
-      </Container>
-    );
-  }
+  /**
+   * Handles navigation to the previous slide.
+   */
+  const handlePreviousSlide = () => {
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex(currentSlideIndex - 1);
+    }
+  };
 
-  const currentSlide = presentation.slides[currentSlideIndex];
+  /**
+   * Handles navigation to the next slide.
+   */
+  const handleNextSlide = () => {
+    if (currentSlideIndex < presentation.slides.length - 1) {
+      setCurrentSlideIndex(currentSlideIndex + 1);
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -210,8 +193,13 @@ const PresentationPage = () => {
         </IconButton>
       </Typography>
       {error && (
-        <Alert severity="error" onClose={() => setError('')}>
+        <Alert severity="error" onClose={() => {}}>
           {error}
+        </Alert>
+      )}
+      {dialogError && (
+        <Alert severity="error" onClose={() => setDialogError('')}>
+          {dialogError}
         </Alert>
       )}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -232,6 +220,8 @@ const PresentationPage = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          padding: 2,
+          overflowY: 'auto',
         }}
       >
         <Typography variant="h5">{currentSlide.content || 'Empty Slide'}</Typography>
@@ -242,8 +232,8 @@ const PresentationPage = () => {
       <SlideControls
         currentSlideIndex={currentSlideIndex}
         totalSlides={presentation.slides.length}
-        onPrevious={() => setCurrentSlideIndex(currentSlideIndex - 1)}
-        onNext={() => setCurrentSlideIndex(currentSlideIndex + 1)}
+        onPrevious={handlePreviousSlide}
+        onNext={handleNextSlide}
       />
 
       {/* Add and Delete Slide Buttons */}
@@ -280,6 +270,7 @@ const PresentationPage = () => {
             variant="standard"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
+            aria-label="New Title"
           />
         </DialogContent>
         <DialogActions>
@@ -303,6 +294,7 @@ const PresentationPage = () => {
             variant="standard"
             value={newThumbnailUrl}
             onChange={(e) => setNewThumbnailUrl(e.target.value)}
+            aria-label="Thumbnail URL"
           />
         </DialogContent>
         <DialogActions>
