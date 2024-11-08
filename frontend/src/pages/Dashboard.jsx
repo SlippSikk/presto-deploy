@@ -1,5 +1,3 @@
-// src/pages/Dashboard.jsx
-
 import React, { useState, useContext } from 'react';
 import {
   Container,
@@ -12,9 +10,12 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  CircularProgress,
+  Box,
 } from '@mui/material';
 import { StoreContext } from '../context/StoreContext';
 import PresentationCard from '../components/PresentationCard';
+import { v4 as uuidv4 } from 'uuid'; // For generating UUIDs
 
 /**
  * Dashboard component that displays a list of presentations and allows creating new ones.
@@ -40,7 +41,7 @@ const Dashboard = () => {
     }
 
     const newPresentation = {
-      id: `presentation-${Date.now()}`, // Simple unique ID; consider using UUID in production
+      id: uuidv4(), // Generates a unique UUID
       name: newPresentationName,
       thumbnail: '', // Placeholder; can be updated later
       description: '',
@@ -59,14 +60,21 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <Container>
-        <Typography>Loading...</Typography>
-      </Container>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '80vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
@@ -86,12 +94,22 @@ const Dashboard = () => {
       <Grid2 container spacing={3}>
         {store.presentations.length > 0 ? (
           store.presentations.map((presentation) => (
-            <Grid2 item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
+            <Grid2
+              item
+              xs={12}
+              sm={6}
+              md={4}
+              lg={3}
+              key={presentation.id}
+              display="flex"
+            >
               <PresentationCard presentation={presentation} />
             </Grid2>
           ))
         ) : (
-          <Typography variant="body1">No presentations available.</Typography>
+          <Grid2 item xs={12}>
+            <Typography variant="body1">No presentations available.</Typography>
+          </Grid2>
         )}
       </Grid2>
 
