@@ -177,6 +177,13 @@ export const StoreProvider = ({ children }) => {
    * @param {string} slideId - ID of the slide to delete.
    */
   const deleteSlide = async (presentationId, slideId) => {
+    const presentation = store.presentations.find(p => p.id === presentationId);
+  
+    // Check if there is only one slide in the presentation
+    if (presentation.slides.length <= 1) {
+      throw new Error('Cannot delete the only slide in the presentation. Delete the presentation instead.');
+    }
+  
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((presentation) =>
@@ -188,8 +195,10 @@ export const StoreProvider = ({ children }) => {
           : presentation
       ),
     };
+  
     await updateStoreData(updatedStore);
   };
+  
 
   return (
     <StoreContext.Provider

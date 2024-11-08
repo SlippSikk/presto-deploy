@@ -119,18 +119,18 @@ const PresentationPage = () => {
    * Handles deleting the current slide.
    */
   const handleDeleteSlide = async () => {
-    if (presentation.slides.length === 1) {
-      setDialogError('Cannot delete the only slide.');
-      return;
-    }
     const slideId = currentSlide.id;
+  
     try {
       await deleteSlide(id, slideId);
+  
+      // Update the current slide index to navigate to the previous slide if possible
       setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
     } catch (err) {
-      setDialogError('Failed to delete slide');
+      setDialogError(err.message);
     }
   };
+  
 
   /**
    * Handles updating the content of the current slide.
