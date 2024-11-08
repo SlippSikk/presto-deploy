@@ -3,7 +3,7 @@ import {
   Container,
   Typography,
   Button,
-  Grid2,
+  Grid,
   Alert,
   Dialog,
   DialogTitle,
@@ -13,7 +13,6 @@ import {
 } from '@mui/material';
 import { StoreContext } from '../context/StoreContext';
 import PresentationCard from '../components/PresentationCard';
-import PropTypes from 'prop-types';
 
 /**
  * Dashboard component that displays a list of presentations and allows creating new ones.
@@ -24,7 +23,6 @@ const Dashboard = () => {
     loading,
     error,
     addPresentation,
-    setStoreState,
   } = useContext(StoreContext);
   const [open, setOpen] = useState(false);
   const [newPresentationName, setNewPresentationName] = useState('');
@@ -83,13 +81,13 @@ const Dashboard = () => {
       >
         New Presentation
       </Button>
-      <Grid2 container spacing={3}>
+      <Grid container spacing={3}>
         {store.presentations.map((presentation) => (
-          <Grid2 item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
+          <Grid item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
             <PresentationCard presentation={presentation} />
-          </Grid2>
+          </Grid>
         ))}
-      </Grid2>
+      </Grid>
 
       {/* Create Presentation Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)}>
@@ -121,10 +119,6 @@ const Dashboard = () => {
       </Dialog>
     </Container>
   );
-};
-
-Dashboard.propTypes = {
-  // Define prop types if any props are passed
 };
 
 export default Dashboard;

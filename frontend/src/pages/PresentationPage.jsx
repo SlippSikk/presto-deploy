@@ -17,6 +17,11 @@ import { Edit } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideNumber from '../components/SlideNumber';
+import {
+  getStore,
+  setStore,
+} from '../services/api';
+
 
 /**
  * PresentationPage component for viewing and editing a specific presentation.
