@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, IconButton } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import PropTypes from 'prop-types';
@@ -14,6 +14,27 @@ import PropTypes from 'prop-types';
  * @returns {JSX.Element} Navigation buttons for slides.
  */
 const SlideControls = ({ currentSlideIndex, totalSlides, onPrevious, onNext }) => {
+  // If there's only one slide, don't render the navigation arrows
+  if (totalSlides < 2) return null;
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft' && currentSlideIndex > 0) {
+        onPrevious();
+      } else if (event.key === 'ArrowRight' && currentSlideIndex < totalSlides - 1) {
+        onNext();
+      }
+    };
+
+    // Add event listener for keydown
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentSlideIndex, totalSlides, onPrevious, onNext]);
+
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
       <IconButton

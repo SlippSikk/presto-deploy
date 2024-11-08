@@ -76,12 +76,26 @@ export const StoreProvider = ({ children }) => {
    * @param {object} presentation - The presentation object to add.
    */
   const addPresentation = async (presentation) => {
+    // Create an initial slide with a unique ID
+    const initialSlide = {
+      id: `slide-${Date.now()}`, // Unique ID for the slide
+      content: '', // Default empty content
+    };
+  
+    // Add the initial slide to the presentation's slides array
+    const newPresentation = {
+      ...presentation,
+      slides: [initialSlide],
+    };
+  
     const updatedStore = {
       ...store,
-      presentations: [...store.presentations, presentation],
+      presentations: [...store.presentations, newPresentation],
     };
+  
     await updateStoreData(updatedStore);
   };
+  
 
   /**
    * Updates an existing presentation in the store.
