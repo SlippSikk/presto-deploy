@@ -1,6 +1,7 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login as loginAPI, register as registerAPI, logout as logoutAPI } from '../services/api';
+import { login as loginAPI, register as registerAPI, logout as logoutAPI, getStore } from '../services/api';
+import PropTypes from 'prop-types';
 
 /**
  * AuthContext provides authentication state and functions to manage authentication.
@@ -20,6 +21,43 @@ export const AuthProvider = ({ children }) => {
     token: localStorage.getItem('token') || null,
     user: null, // You can store user details here if available
   });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // To handle async token verification
+  const [error, setError] = useState('');
+
+  /**
+   * Verifies the token's validity by fetching store data.
+   * If successful, sets the user as authenticated.
+   * Otherwise, clears the token and redirects to login.
+   */
+  useEffect(() => {
+    const verifyToken = async () => {
+      if (auth.token) {
+        try {
+          // Attempt to fetch store data to verify token
+          const response = await getStore();
+          if (response.status === 200) {
+            setIsAuthenticated(true);
+            setAuth((prev) => ({ ...prev, user: response.data.user || null })); // Assuming user data is returned
+          } else {
+            throw new Error('Token verification failed');
+          }
+        } catch (err) {
+          console.error('Token verification failed:', err);
+          setIsAuthenticated(false);
+          setAuth({ token: null, user: null });
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+      setLoading(false);
+    };
+
+    verifyToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Handles user login by calling the login API and updating authentication state.
@@ -32,9 +70,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await loginAPI(email, password);
       localStorage.setItem('token', response.data.token);
-      setAuth({ token: response.data.token, user: null });
+      setAuth({ token: response.data.token, user: response.data.user || null });
+      setIsAuthenticated(true);
       navigate('/dashboard');
     } catch (error) {
+      console.error('Login failed:', error);
       throw error.response?.data?.error || 'Login failed';
     }
   };
@@ -51,9 +91,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await registerAPI(email, password, name);
       localStorage.setItem('token', response.data.token);
-      setAuth({ token: response.data.token, user: null });
+      setAuth({ token: response.data.token, user: response.data.user || null });
+      setIsAuthenticated(true);
       navigate('/dashboard');
     } catch (error) {
+      console.error('Registration failed:', error);
       throw error.response?.data?.error || 'Registration failed';
     }
   };
@@ -65,17 +107,24 @@ export const AuthProvider = ({ children }) => {
     try {
       await logoutAPI();
     } catch (error) {
-      console.error('Logout failed', error);
+      console.error('Logout failed:', error);
     } finally {
       localStorage.removeItem('token');
       setAuth({ token: null, user: null });
-      navigate('/');
+      setIsAuthenticated(false);
+      navigate('/login');
     }
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, register, logout }}>
+    <AuthContext.Provider value={{ auth, isAuthenticated, loading, error, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+export default AuthProvider;
