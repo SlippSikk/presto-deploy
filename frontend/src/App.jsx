@@ -35,15 +35,13 @@ const App = () => {
       <Routes>
         {/* Redirect root to /dashboard */}
         <Route path="/" element={<Navigate to="/dashboard" />} />
-        
-        {/* Landing Page */}
-        <Route path="/landing" element={<LandingPage />} />
-        
-        {/* Authentication Routes */}
+
+        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
-        {/* Dashboard Route */}
+        <Route path="/landing" element={<LandingPage />} /> {/* If applicable */}
+
+        {/* Protected Routes */}
         <Route
           path="/dashboard"
           element={
@@ -52,8 +50,6 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        
-        {/* Presentation Route with dynamic ID */}
         <Route
           path="/presentation/:id"
           element={
@@ -62,9 +58,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        
-        {/* Fallback Route for 404 Not Found */}
-        <Route path="*" element={<NotFound />} />
+
       </Routes>
     </ThemeProvider>
   );
