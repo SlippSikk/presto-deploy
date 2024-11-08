@@ -1,9 +1,10 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
+import PresentationPage from './pages/PresentationPage'; // Import PresentationPage
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -32,9 +33,17 @@ const App = () => {
     <ThemeProvider theme={theme}>
       <Navbar />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        {/* Redirect root to /dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" />} />
+        
+        {/* Landing Page */}
+        <Route path="/landing" element={<LandingPage />} />
+        
+        {/* Authentication Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Dashboard Route */}
         <Route
           path="/dashboard"
           element={
@@ -43,6 +52,19 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        
+        {/* Presentation Route with dynamic ID */}
+        <Route
+          path="/presentation/:id"
+          element={
+            <PrivateRoute>
+              <PresentationPage />
+            </PrivateRoute>
+          }
+        />
+        
+        {/* Fallback Route for 404 Not Found */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </ThemeProvider>
   );
