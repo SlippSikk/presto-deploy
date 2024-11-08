@@ -29,7 +29,7 @@ export const StoreProvider = ({ children }) => {
       if (auth.token) {
         try {
           const response = await getStore();
-          setStoreState(response.data.store);
+          setStoreState(response.data); // Changed from response.data.store to response.data
           setLoading(false);
         } catch (err) {
           setError('Failed to load store data.');
@@ -52,7 +52,7 @@ export const StoreProvider = ({ children }) => {
    */
   const updateStore = async (updatedStore) => {
     try {
-      await setStore(updatedStore);
+      await setStore(updatedStore); // Ensure backend accepts store data directly
       setStoreState(updatedStore);
     } catch (err) {
       setError('Failed to update store data.');
