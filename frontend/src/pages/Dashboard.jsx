@@ -1,9 +1,11 @@
+// src/pages/Dashboard.jsx
+
 import React, { useState, useContext } from 'react';
 import {
   Container,
   Typography,
   Button,
-  Grid,
+  Grid2,
   Alert,
   Dialog,
   DialogTitle,
@@ -81,13 +83,17 @@ const Dashboard = () => {
       >
         New Presentation
       </Button>
-      <Grid container spacing={3}>
-        {store.presentations.map((presentation) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
-            <PresentationCard presentation={presentation} />
-          </Grid>
-        ))}
-      </Grid>
+      <Grid2 container spacing={3}>
+        {store.presentations.length > 0 ? (
+          store.presentations.map((presentation) => (
+            <Grid2 item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
+              <PresentationCard presentation={presentation} />
+            </Grid2>
+          ))
+        ) : (
+          <Typography variant="body1">No presentations available.</Typography>
+        )}
+      </Grid2>
 
       {/* Create Presentation Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)}>

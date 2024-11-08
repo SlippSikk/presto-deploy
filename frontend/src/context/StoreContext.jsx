@@ -32,9 +32,9 @@ export const StoreProvider = ({ children }) => {
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
 
-          // Defensive assignment: Ensure presentations is always an array
-          const fetchedStore = response.data && Array.isArray(response.data.presentations)
-            ? response.data
+          // Corrected assignment: Ensure presentations are correctly accessed
+          const fetchedStore = response.data && response.data.store && Array.isArray(response.data.store.presentations)
+            ? response.data.store
             : { presentations: [] };
 
           setStoreState(fetchedStore);
@@ -59,7 +59,7 @@ export const StoreProvider = ({ children }) => {
    *
    * @param {object} updatedStore - The updated store object.
    */
-  const updateStore = async (updatedStore) => {
+  const updateStoreData = async (updatedStore) => {
     try {
       await setStore(updatedStore); // Ensure backend accepts store data directly
       setStoreState(updatedStore);
@@ -80,7 +80,7 @@ export const StoreProvider = ({ children }) => {
       ...store,
       presentations: [...store.presentations, presentation],
     };
-    await updateStore(updatedStore);
+    await updateStoreData(updatedStore);
   };
 
   /**
@@ -96,7 +96,7 @@ export const StoreProvider = ({ children }) => {
         presentation.id === presentationId ? updatedPresentation : presentation
       ),
     };
-    await updateStore(updatedStore);
+    await updateStoreData(updatedStore);
   };
 
   /**
@@ -111,7 +111,7 @@ export const StoreProvider = ({ children }) => {
         (presentation) => presentation.id !== presentationId
       ),
     };
-    await updateStore(updatedStore);
+    await updateStoreData(updatedStore);
   };
 
   /**
@@ -129,7 +129,7 @@ export const StoreProvider = ({ children }) => {
           : presentation
       ),
     };
-    await updateStore(updatedStore);
+    await updateStoreData(updatedStore);
   };
 
   /**
@@ -153,7 +153,7 @@ export const StoreProvider = ({ children }) => {
           : presentation
       ),
     };
-    await updateStore(updatedStore);
+    await updateStoreData(updatedStore);
   };
 
   /**
@@ -174,7 +174,7 @@ export const StoreProvider = ({ children }) => {
           : presentation
       ),
     };
-    await updateStore(updatedStore);
+    await updateStoreData(updatedStore);
   };
 
   return (
