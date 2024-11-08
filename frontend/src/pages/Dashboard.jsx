@@ -3,7 +3,7 @@ import {
   Container,
   Typography,
   Button,
-  Grid2,
+  Grid,
   Alert,
   Dialog,
   DialogTitle,
@@ -91,10 +91,10 @@ const Dashboard = () => {
       >
         New Presentation
       </Button>
-      <Grid2 container spacing={3}>
+      <Grid container spacing={3}>
         {store.presentations.length > 0 ? (
           store.presentations.map((presentation) => (
-            <Grid2
+            <Grid
               item
               xs={12}
               sm={6}
@@ -104,14 +104,14 @@ const Dashboard = () => {
               display="flex"
             >
               <PresentationCard presentation={presentation} />
-            </Grid2>
+            </Grid>
           ))
         ) : (
-          <Grid2 item xs={12}>
+          <Grid item xs={12}>
             <Typography variant="body1">No presentations available.</Typography>
-          </Grid2>
+          </Grid>
         )}
-      </Grid2>
+      </Grid>
 
       {/* Create Presentation Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)}>

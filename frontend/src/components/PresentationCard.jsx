@@ -13,21 +13,14 @@ import {
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-/**
- * PresentationCard component that displays individual presentation details.
- *
- * @param {object} props - React props.
- * @param {object} props.presentation - Presentation data.
- * @returns {JSX.Element} A card displaying presentation information.
- */
 const PresentationCard = ({ presentation }) => {
   const { id, name, thumbnail, description, slides } = presentation;
 
   return (
     <Card
       sx={{
-        width: '100%',
-        height: 'auto',
+        width: 400,           // Set a fixed width (e.g., 300px)
+        height: 200,          // Height is half of the width for a 2:1 aspect ratio
         display: 'flex',
         flexDirection: 'column',
         boxShadow: 3,
@@ -36,20 +29,17 @@ const PresentationCard = ({ presentation }) => {
         '&:hover': {
           transform: 'scale(1.03)',
         },
-        // Aspect Ratio: 2:1
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Container to maintain aspect ratio */}
       <Box
         sx={{
           position: 'relative',
           width: '100%',
-          paddingTop: '50%', // 2:1 aspect ratio
+          height: '100%',
         }}
       >
-        {/* Thumbnail Image */}
         {thumbnail ? (
           <CardMedia
             component="img"
@@ -85,27 +75,25 @@ const PresentationCard = ({ presentation }) => {
         )}
       </Box>
 
-      {/* Presentation Details */}
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Typography gutterBottom variant="h6" component="div">
+      <CardContent sx={{ flexGrow: 1, paddingTop: '0px', paddingBottom: '0px', paddingLeft: '8px', paddingRight: '8px' }}> {/* Reduce padding */}
+        <Typography gutterBottom variant="h6" component="div" sx={{ mb: 0.5 }}> {/* Reduce bottom margin */}
           {name}
         </Typography>
         {description && (
-          <Typography variant="body2" color="textSecondary">
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}> {/* Reduce bottom margin */}
             {description}
           </Typography>
         )}
         <Typography
           variant="caption"
           color="textSecondary"
-          sx={{ mt: 1, display: 'block' }}
+          sx={{ mt: 0.5 }}
         >
           {slides.length} {slides.length === 1 ? 'Slide' : 'Slides'}
         </Typography>
       </CardContent>
 
-      {/* Actions */}
-      <CardActions>
+      <CardActions sx={{ paddingTop: '5px', paddingBottom: '5px', paddingLeft: '8px', paddingRight: '8px' }}> {/* Reduce padding */}
         <Button
           size="small"
           component={Link}
