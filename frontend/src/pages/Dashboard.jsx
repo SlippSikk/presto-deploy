@@ -1,70 +1,71 @@
-import React, { useState, useEffect, useContext } from 'react';
+// src/pages/Dashboard.jsx
+
+import React, { useState, useContext } from 'react';
 import {
   Container,
   Typography,
   Button,
   Grid2,
-  Card,
-  CardContent,
-  CardActions,
+  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Alert,
-  Box,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { getPresentations, createPresentation } from '../services/presentationApi'; // To be implemented
-import PresentationCard from '../components/PresentationCard'; // Extracted component
+import { StoreContext } from '../context/StoreContext';
+import PresentationCard from '../components/PresentationCard';
+import PropTypes from 'prop-types';
 
 /**
  * Dashboard component that displays a list of presentations and allows creating new ones.
  */
 const Dashboard = () => {
-  const { auth } = useContext(AuthContext);
-  const [presentations, setPresentations] = useState([]);
+  const {
+    store,
+    loading,
+    error,
+    addPresentation,
+    setStoreState,
+  } = useContext(StoreContext);
   const [open, setOpen] = useState(false);
   const [newPresentationName, setNewPresentationName] = useState('');
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchPresentations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /**
-   * Fetches all presentations for the authenticated user.
-   */
-  const fetchPresentations = async () => {
-    try {
-      const response = await getPresentations(); // API call to get presentations
-      setPresentations(response.data.presentations);
-    } catch (err) {
-      setError('Failed to load presentations');
-    }
-  };
+  const [dialogError, setDialogError] = useState('');
 
   /**
    * Handles the creation of a new presentation.
    */
   const handleCreatePresentation = async () => {
     if (!newPresentationName.trim()) {
-      setError('Presentation name cannot be empty');
+      setDialogError('Presentation name cannot be empty');
       return;
     }
+
+    const newPresentation = {
+      id: `presentation-${Date.now()}`, // Simple unique ID; consider using UUID in production
+      name: newPresentationName,
+      thumbnail: '', // Placeholder; can be updated later
+      description: '',
+      slides: [],
+    };
+
     try {
-      const response = await createPresentation(newPresentationName);
-      setPresentations([...presentations, response.data.presentation]);
+      await addPresentation(newPresentation);
       setOpen(false);
       setNewPresentationName('');
-      setError('');
+      setDialogError('');
     } catch (err) {
-      setError('Failed to create presentation');
+      setDialogError('Failed to create presentation');
     }
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <Typography>Loading...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -72,7 +73,7 @@ const Dashboard = () => {
         Dashboard
       </Typography>
       {error && (
-        <Alert severity="error" onClose={() => setError('')}>
+        <Alert severity="error" onClose={() => {}}>
           {error}
         </Alert>
       )}
@@ -85,7 +86,7 @@ const Dashboard = () => {
         New Presentation
       </Button>
       <Grid2 container spacing={3}>
-        {presentations.map((presentation) => (
+        {store.presentations.map((presentation) => (
           <Grid2 item xs={12} sm={6} md={4} lg={3} key={presentation.id}>
             <PresentationCard presentation={presentation} />
           </Grid2>
@@ -96,6 +97,11 @@ const Dashboard = () => {
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Create New Presentation</DialogTitle>
         <DialogContent>
+          {dialogError && (
+            <Alert severity="error" onClose={() => setDialogError('')}>
+              {dialogError}
+            </Alert>
+          )}
           <TextField
             autoFocus
             margin="dense"
@@ -105,6 +111,7 @@ const Dashboard = () => {
             variant="standard"
             value={newPresentationName}
             onChange={(e) => setNewPresentationName(e.target.value)}
+            aria-label="Presentation Name"
           />
         </DialogContent>
         <DialogActions>
@@ -116,6 +123,10 @@ const Dashboard = () => {
       </Dialog>
     </Container>
   );
+};
+
+Dashboard.propTypes = {
+  // Define prop types if any props are passed
 };
 
 export default Dashboard;
