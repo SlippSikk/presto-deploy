@@ -120,11 +120,13 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const renderElement = (element) => {
     const style = {
       position: 'absolute',
-      border: '1px solid grey',
-      backgroundColor: 'white', // Ensure element background is white
-      padding: '5px',
       overflow: 'hidden', // Ensure clipping
       cursor: 'move', // Indicate draggable
+      ...(element.type === ELEMENT_TYPES.TEXT && {
+        border: '1px solid grey',
+        backgroundColor: 'white', // Ensure element background is white
+        padding: '5px',
+      }),
     };
 
     let content;
@@ -200,7 +202,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
             ...style,
             width: '100%',
             height: '100%',
-            display: 'block', // Changed from 'flex' to 'block'
+            display: 'flex', // Changed from 'flex' to 'block'
           }}
           onDoubleClick={() => handleEditElement(element)}
           onContextMenu={(e) => {
