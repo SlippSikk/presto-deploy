@@ -122,7 +122,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       position: 'absolute',
       overflow: 'hidden', // Ensure clipping
       cursor: 'move', // Indicate draggable
-      ...(element.type === ELEMENT_TYPES.TEXT && {
+      ...((element.type === ELEMENT_TYPES.TEXT || element.type === ELEMENT_TYPES.VIDEO) && {
         border: '1px solid grey',
         backgroundColor: 'white', // Ensure element background is white
         padding: '5px',
