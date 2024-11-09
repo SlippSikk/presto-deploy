@@ -14,7 +14,7 @@ const ImageBlock = ({ src, alt }) => {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        backgroundColor: '#f0f0f0', // Optional: Placeholder background
+        // backgroundColor: '#f0f0f0', // Optional: Placeholder background
       }}
     >
       <img

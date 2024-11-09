@@ -58,7 +58,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const updateSize = () => {
       if (containerRef.current) {
         const { clientWidth, clientHeight } = containerRef.current;
-        setContainerSize({ width: clientWidth, height: clientHeight }); // Corrected
+        setContainerSize({ width: clientWidth, height: clientHeight });
       }
     };
 
@@ -123,10 +123,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       border: '1px solid grey',
       backgroundColor: 'white', // Ensure element background is white
       padding: '5px',
-      overflow: 'hidden',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      overflow: 'hidden', // Ensure clipping
       cursor: 'move', // Indicate draggable
     };
 
@@ -160,18 +157,25 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         return null;
     }
 
+    // Convert percentage sizes to pixels
+    const widthInPixels = (element.size.width / 100) * containerSize.width;
+    const heightInPixels = (element.size.height / 100) * containerSize.height;
+
+    // Convert percentage positions to pixels
+    const xInPixels = (element.position.x / 100) * containerSize.width;
+    const yInPixels = (element.position.y / 100) * containerSize.height;
+
     return (
       <Rnd
         key={element.id}
         size={{
-          width: `${element.size.width}%`,
-          height: `${element.size.height}%`,
+          width: widthInPixels,
+          height: heightInPixels,
         }}
         position={{
-          x: (element.position.x / 100) * containerSize.width,
-          y: (element.position.y / 100) * containerSize.height,
+          x: xInPixels,
+          y: yInPixels,
         }}
-        // Removed bounds="parent" to allow dragging up to edges and beyond
         onDragStop={(e, d) => handleElementDragStop(e, d, element)}
         onResizeStop={(e, direction, ref, delta, position) =>
           handleElementResizeStop(e, direction, ref, delta, position, element)
@@ -187,15 +191,17 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           topLeft: true,
           topRight: true,
         }}
-        // Optionally, set minimum and maximum sizes
         minWidth={50}
         minHeight={50}
-        // maxWidth and maxHeight can be set based on container size if needed
-        // Allow elements to be dragged outside by not setting bounds
         dragGrid={[1, 1]} // Optional: Snap to 1px grid for smoother dragging
       >
         <Box
-          sx={style}
+          sx={{
+            ...style,
+            width: '100%',
+            height: '100%',
+            display: 'block', // Changed from 'flex' to 'block'
+          }}
           onDoubleClick={() => handleEditElement(element)}
           onContextMenu={(e) => {
             e.preventDefault();

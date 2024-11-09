@@ -1,5 +1,3 @@
-// src/components/elements/TextBlock.jsx
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Typography } from '@mui/material';
@@ -13,6 +11,11 @@ const TextBlock = ({ content, fontSize, color }) => {
         color: color,
         whiteSpace: 'pre-wrap',
         overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        width: '100%',
+        height: '100%',
+        // Ensure the text does not expand the container
+        display: 'block',
       }}
     >
       {content}

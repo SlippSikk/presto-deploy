@@ -14,9 +14,23 @@ SyntaxHighlighter.registerLanguage('c', c);
 
 const CodeBlock = ({ code, language, fontSize }) => {
   return (
-    <SyntaxHighlighter language={language} style={github} customStyle={{ fontSize: `${fontSize}em`, height: '100%', overflow: 'auto' }}>
-      {code}
-    </SyntaxHighlighter>
+    <div style={{ width: '100%', overflow: 'hidden' }}>
+      <SyntaxHighlighter
+        language={language}
+        style={github}
+        customStyle={{
+          fontSize: `${fontSize}em`,
+          whiteSpace: 'pre-wrap', // Allows code to wrap; use 'pre' to prevent wrapping
+          textOverflow: 'ellipsis',
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 10, // Limit to 10 lines; adjust as needed
+          WebkitBoxOrient: 'vertical',
+        }}
+      >
+        {code}
+      </SyntaxHighlighter>
+    </div>
   );
 };
 
