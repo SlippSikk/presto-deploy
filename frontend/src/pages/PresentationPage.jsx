@@ -168,3 +168,110 @@ const PresentationPage = () => {
         <Typography variant="h6">{presentation.name}</Typography>
       </Box>
 
+      {/* Thumbnail Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Thumbnail
+          <IconButton
+            size="small"
+            onClick={() => setOpenEditThumbnailDialog(true)}
+            aria-label="Edit Thumbnail"
+            sx={{ ml: 1 }}
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+        </Typography>
+        <img src={currentThumbnail} alt="Thumbnail Preview" style={{ width: '100px', height: 'auto' }} />
+      </Box>
+
+      {error && (
+        <Alert severity="error" onClose={() => {}}>
+          {error}
+        </Alert>
+      )}
+      {dialogError && (
+        <Alert severity="error" onClose={() => setDialogError('')}>
+          {dialogError}
+        </Alert>
+      )}
+
+      {/* Slide Content */}
+      <SlideEditor presentationId={id} slide={currentSlide} updateSlide={updateSlideHandler} />
+
+      {/* Slide Controls */}
+      <SlideControls
+        currentSlideIndex={currentSlideIndex}
+        totalSlides={Array.isArray(presentation.slides) ? presentation.slides.length : 0}
+        onPrevious={() => setCurrentSlideIndex(currentSlideIndex - 1)}
+        onNext={() => setCurrentSlideIndex(currentSlideIndex + 1)}
+      />
+
+      {/* Add and Delete Slide Buttons */}
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+        <Button variant="contained" onClick={handleAddSlide}>
+          Add Slide
+        </Button>
+        <Button variant="outlined" color="error" onClick={handleDeleteSlide}>
+          Delete Slide
+        </Button>
+      </Box>
+
+      {/* Delete Presentation Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+        <DialogTitle>Are you sure you want to delete this presentation?</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>No</Button>
+          <Button onClick={handleDeletePresentation} color="error" variant="contained">
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Title Dialog */}
+      <Dialog open={openEditTitleDialog} onClose={() => setOpenEditTitleDialog(false)}>
+        <DialogTitle>Edit Presentation Title</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="New Title"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            aria-label="New Title"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditTitleDialog(false)}>Cancel</Button>
+          <Button onClick={handleUpdateTitle} variant="contained" color="primary">
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Thumbnail Dialog */}
+      <Dialog open={openEditThumbnailDialog} onClose={() => setOpenEditThumbnailDialog(false)}>
+        <DialogTitle>Edit Presentation Thumbnail</DialogTitle>
+        <DialogContent>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setNewThumbnailFile(e.target.files[0])}
+            style={{ marginTop: '10px' }}
+            aria-label="Upload Thumbnail"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditThumbnailDialog(false)}>Cancel</Button>
+          <Button onClick={handleUpdateThumbnail} variant="contained" color="primary">
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
+  );
+};
+
+export default PresentationPage;
