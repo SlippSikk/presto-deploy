@@ -13,14 +13,11 @@ import {
   Alert,
   IconButton,
 } from '@mui/material';
-import { Edit } from '@mui/icons-material';
+import { Edit, ArrowBack } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideNumber from '../components/SlideNumber';
 
-/**
- * PresentationPage component for viewing and editing a specific presentation.
- */
 const PresentationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -38,9 +35,10 @@ const PresentationPage = () => {
   const [openEditTitleDialog, setOpenEditTitleDialog] = useState(false);
   const [openEditThumbnailDialog, setOpenEditThumbnailDialog] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [newThumbnailUrl, setNewThumbnailUrl] = useState('');
+  const [newThumbnailFile, setNewThumbnailFile] = useState(null);
   const [dialogError, setDialogError] = useState('');
 
+  const defaultThumbnail = '/assets/default-thumbnail.jpg';
   const presentation = store.presentations.find((p) => p.id === id);
 
   if (!presentation) {
@@ -51,11 +49,9 @@ const PresentationPage = () => {
     );
   }
 
+  const currentThumbnail = presentation.thumbnail || defaultThumbnail;
   const currentSlide = presentation.slides[currentSlideIndex] || {};
 
-  /**
-   * Handles the deletion of the entire presentation.
-   */
   const handleDeletePresentation = async () => {
     try {
       await deletePresentation(id);
@@ -65,9 +61,6 @@ const PresentationPage = () => {
     }
   };
 
-  /**
-   * Handles updating the presentation title.
-   */
   const handleUpdateTitle = async () => {
     if (!newTitle.trim()) {
       setDialogError('Title cannot be empty');
@@ -84,114 +77,104 @@ const PresentationPage = () => {
     }
   };
 
-  /**
-   * Handles updating the presentation thumbnail.
-   */
   const handleUpdateThumbnail = async () => {
-    const updatedPresentation = { ...presentation, thumbnail: newThumbnailUrl };
-    try {
-      await updatePresentation(id, updatedPresentation);
-      setOpenEditThumbnailDialog(false);
-      setNewThumbnailUrl('');
-      setDialogError('');
-    } catch (err) {
-      setDialogError('Failed to update thumbnail');
+    let thumbnailUrl = presentation.thumbnail;
+
+    if (newThumbnailFile) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        thumbnailUrl = reader.result;
+        const updatedPresentation = { ...presentation, thumbnail: thumbnailUrl };
+        try {
+          await updatePresentation(id, updatedPresentation);
+          setOpenEditThumbnailDialog(false);
+          setNewThumbnailFile(null);
+          setDialogError('');
+        } catch (err) {
+          setDialogError('Failed to update thumbnail');
+        }
+      };
+      reader.readAsDataURL(newThumbnailFile);
+    } else {
+      setDialogError('Please select an image file.');
     }
   };
 
-  /**
-   * Handles adding a new slide to the presentation.
-   */
   const handleAddSlide = async () => {
     const newSlide = {
-      id: `slide-${Date.now()}`, // Simple unique ID; consider using UUID in production
+      id: `slide-${Date.now()}`,
       content: '',
     };
     try {
       await addSlide(id, newSlide);
-      setCurrentSlideIndex(presentation.slides.length); // Navigate to the new slide
+      setCurrentSlideIndex(presentation.slides.length);
     } catch (err) {
       setDialogError('Failed to add slide');
     }
   };
 
-  /**
-   * Handles deleting the current slide.
-   */
   const handleDeleteSlide = async () => {
     const slideId = currentSlide.id;
   
     try {
       await deleteSlide(id, slideId);
-  
-      // Update the current slide index to navigate to the previous slide if possible
       setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
     } catch (err) {
       setDialogError(err.message);
     }
   };
-  
 
-  /**
-   * Handles updating the content of the current slide.
-   *
-   * @param {string} newContent - The updated content for the slide.
-   */
-  const handleUpdateSlideContent = async (newContent) => {
-    const updatedSlide = { ...currentSlide, content: newContent };
-    try {
-      await updateSlide(id, currentSlide.id, updatedSlide);
-    } catch (err) {
-      setDialogError('Failed to update slide content');
-    }
-  };
-
-  /**
-   * Navigates back to the dashboard.
-   */
   const handleBack = () => {
     navigate('/dashboard');
   };
 
-  /**
-   * Handles navigation to the previous slide.
-   */
-  const handlePreviousSlide = () => {
-    if (currentSlideIndex > 0) {
-      setCurrentSlideIndex(currentSlideIndex - 1);
-    }
-  };
-
-  /**
-   * Handles navigation to the next slide.
-   */
-  const handleNextSlide = () => {
-    if (currentSlideIndex < presentation.slides.length - 1) {
-      setCurrentSlideIndex(currentSlideIndex + 1);
-    }
-  };
-
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        {presentation.name}
-        <IconButton
-          size="small"
-          onClick={() => setOpenEditTitleDialog(true)}
-          aria-label="Edit Title"
-          sx={{ ml: 1 }}
-        >
-          <Edit fontSize="small" />
-        </IconButton>
-        <IconButton
-          size="small"
-          onClick={() => setOpenEditThumbnailDialog(true)}
-          aria-label="Edit Thumbnail"
-          sx={{ ml: 1 }}
-        >
-          <Edit fontSize="small" />
-        </IconButton>
-      </Typography>
+      {/* Back Button and Delete Presentation Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Button startIcon={<ArrowBack />} variant="contained" onClick={handleBack}>
+          Back
+        </Button>
+        <Button variant="outlined" color="error" onClick={() => setOpenDeleteDialog(true)}>
+          Delete Presentation
+        </Button>
+      </Box>
+
+      {/* Title Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Title
+          <IconButton
+            size="small"
+            onClick={() => {
+              setOpenEditTitleDialog(true);
+              setNewTitle(presentation.name);
+            }}
+            aria-label="Edit Title"
+            sx={{ ml: 1 }}
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+        </Typography>
+        <Typography variant="h6">{presentation.name}</Typography>
+      </Box>
+
+      {/* Thumbnail Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Thumbnail
+          <IconButton
+            size="small"
+            onClick={() => setOpenEditThumbnailDialog(true)}
+            aria-label="Edit Thumbnail"
+            sx={{ ml: 1 }}
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+        </Typography>
+        <img src={currentThumbnail} alt="Thumbnail Preview" style={{ width: '100px', height: 'auto' }} />
+      </Box>
+
       {error && (
         <Alert severity="error" onClose={() => {}}>
           {error}
@@ -202,14 +185,6 @@ const PresentationPage = () => {
           {dialogError}
         </Alert>
       )}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Button variant="contained" onClick={handleBack}>
-          Back
-        </Button>
-        <Button variant="outlined" color="error" onClick={() => setOpenDeleteDialog(true)}>
-          Delete Presentation
-        </Button>
-      </Box>
 
       {/* Slide Content */}
       <Box
@@ -222,6 +197,7 @@ const PresentationPage = () => {
           justifyContent: 'center',
           padding: 2,
           overflowY: 'auto',
+          mb: 4,
         }}
       >
         <Typography variant="h5">{currentSlide.content || 'Empty Slide'}</Typography>
@@ -232,8 +208,8 @@ const PresentationPage = () => {
       <SlideControls
         currentSlideIndex={currentSlideIndex}
         totalSlides={presentation.slides.length}
-        onPrevious={handlePreviousSlide}
-        onNext={handleNextSlide}
+        onPrevious={() => setCurrentSlideIndex(currentSlideIndex - 1)}
+        onNext={() => setCurrentSlideIndex(currentSlideIndex + 1)}
       />
 
       {/* Add and Delete Slide Buttons */}
@@ -285,16 +261,11 @@ const PresentationPage = () => {
       <Dialog open={openEditThumbnailDialog} onClose={() => setOpenEditThumbnailDialog(false)}>
         <DialogTitle>Edit Presentation Thumbnail</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Thumbnail URL"
-            type="url"
-            fullWidth
-            variant="standard"
-            value={newThumbnailUrl}
-            onChange={(e) => setNewThumbnailUrl(e.target.value)}
-            aria-label="Thumbnail URL"
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setNewThumbnailFile(e.target.files[0])}
+            style={{ marginTop: '10px' }}
           />
         </DialogContent>
         <DialogActions>
