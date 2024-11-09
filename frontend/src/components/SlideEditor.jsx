@@ -253,6 +253,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'clip'
         }}
         aria-label="Slide Editor"
       >

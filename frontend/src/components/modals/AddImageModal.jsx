@@ -10,6 +10,7 @@ import {
   Button,
   TextField,
   Grid,
+  Typography,
 } from '@mui/material';
 
 const AddImageModal = ({ open, onClose, onAdd }) => {
@@ -17,21 +18,44 @@ const AddImageModal = ({ open, onClose, onAdd }) => {
   const [alt, setAlt] = useState('');
   const [sizeWidth, setSizeWidth] = useState(30);
   const [sizeHeight, setSizeHeight] = useState(30);
+  const [file, setFile] = useState(null);
   const [error, setError] = useState('');
 
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+    setSrc(''); // Clear URL if file is selected
+  };
+
   const handleAdd = () => {
-    if (!src.trim()) {
-      setError('Image URL cannot be empty');
+    if (!src.trim() && !file) {
+      setError('Either Image URL or File upload is required');
       return;
     }
-    onAdd('image', { src, alt, size: { width: sizeWidth, height: sizeHeight } });
-    // Reset fields
-    setSrc('');
-    setAlt('');
-    setSizeWidth(30);
-    setSizeHeight(30);
-    setError('');
-    onClose();
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onAdd('image', { src: reader.result, alt, size: { width: sizeWidth, height: sizeHeight } });
+        // Reset fields
+        setSrc('');
+        setAlt('');
+        setSizeWidth(30);
+        setSizeHeight(30);
+        setFile(null);
+        setError('');
+        onClose();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      onAdd('image', { src, alt, size: { width: sizeWidth, height: sizeHeight } });
+      // Reset fields
+      setSrc('');
+      setAlt('');
+      setSizeWidth(30);
+      setSizeHeight(30);
+      setError('');
+      onClose();
+    }
   };
 
   return (
@@ -40,14 +64,27 @@ const AddImageModal = ({ open, onClose, onAdd }) => {
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12}>
+            <Typography variant="subtitle1">Choose Image Source</Typography>
+          </Grid>
+          <Grid item xs={6}>
             <TextField
               label="Image URL"
               fullWidth
               value={src}
-              onChange={(e) => setSrc(e.target.value)}
-              required
+              onChange={(e) => {
+                setSrc(e.target.value);
+                setFile(null); // Clear file if URL is entered
+              }}
+              disabled={file !== null}
               aria-label="Image URL"
             />
+          </Grid>
+          <Grid item xs={6}>
+            <Button variant="contained" component="label" fullWidth>
+              Upload File
+              <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+            </Button>
+            {file && <Typography variant="body2">{file.name}</Typography>}
           </Grid>
           <Grid item xs={12}>
             <TextField
