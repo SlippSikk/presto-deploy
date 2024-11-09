@@ -33,13 +33,10 @@ const App = () => {
     <ThemeProvider theme={theme}>
       <Navbar />
       <Routes>
-        {/* Redirect root to /dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
-
-        {/* Public Routes */}
+        {/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/landing" element={<LandingPage />} /> {/* If applicable */}
 
         {/* Protected Routes */}
         <Route
