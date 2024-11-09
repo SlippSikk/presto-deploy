@@ -20,9 +20,15 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
   const [sizeHeight, setSizeHeight] = useState(10);
   const [error, setError] = useState('');
 
+  const validateHex = (hex) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+
   const handleAdd = () => {
     if (!content.trim()) {
       setError('Content cannot be empty');
+      return;
+    }
+    if (!validateHex(color)) {
+      setError('Invalid HEX color code');
       return;
     }
     onAdd('text', { content, fontSize, color, size: { width: sizeWidth, height: sizeHeight } });
@@ -67,10 +73,11 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
           <Grid item xs={6}>
             <TextField
               label="Color (HEX)"
-              type="color"
+              type="text"
               fullWidth
               value={color}
               onChange={(e) => setColor(e.target.value)}
+              placeholder="#000000"
               aria-label="Text Color"
             />
           </Grid>

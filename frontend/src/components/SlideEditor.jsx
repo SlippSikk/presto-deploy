@@ -2,7 +2,7 @@
 
 import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Button, IconButton, Typography } from '@mui/material';
+import { Box, IconButton, Typography, Stack } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
@@ -15,12 +15,13 @@ import AddTextModal from './modals/AddTextModal';
 import AddImageModal from './modals/AddImageModal';
 import AddVideoModal from './modals/AddVideoModal';
 import AddCodeModal from './modals/AddCodeModal';
-import EditTextModal from './modals/EditTextModal'; // New import
-import EditImageModal from './modals/EditImageModal'; // New import
-import EditVideoModal from './modals/EditVideoModal'; // New import
-import EditCodeModal from './modals/EditCodeModal'; // New import
+import EditTextModal from './modals/EditTextModal';
+import EditImageModal from './modals/EditImageModal';
+import EditVideoModal from './modals/EditVideoModal';
+import EditCodeModal from './modals/EditCodeModal';
 
 const SlideEditor = ({ presentationId, slide, updateSlide }) => {
+  // State for adding new elements
   const [openTextModal, setOpenTextModal] = useState(false);
   const [openImageModal, setOpenImageModal] = useState(false);
   const [openVideoModal, setOpenVideoModal] = useState(false);
@@ -53,7 +54,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const newElement = {
       id: `element-${Date.now()}`,
       type,
-      position: { x: 0, y: 0 },
+      position: { x: 50, y: 50 }, // Center position
       size: { width: 30, height: 10 },
       layer: elements.length + 1,
       ...elementData,
@@ -219,43 +220,49 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   };
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        width: '800px',
-        height: '600px',
-        border: '1px solid #ccc',
-        margin: '0 auto',
-        backgroundColor: '#ffffff', // Set slide background to white
-      }}
-      aria-label="Slide Editor"
-    >
-      {elements.length > 0 ? (
-        elements.map((element) => renderElement(element))
-      ) : (
-        <Typography variant="h6" color="textSecondary">
-          No elements in this slide.
-        </Typography>
-      )}
-
+    <Box>
       {/* Controls to Add Elements */}
-      <Box sx={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 1 }}>
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <IconButton color="primary" onClick={() => setOpenTextModal(true)} aria-label="Add Text">
           <Add />
-          <Typography variant="caption">T</Typography>
+          <Typography variant="caption">Text</Typography>
         </IconButton>
         <IconButton color="primary" onClick={() => setOpenImageModal(true)} aria-label="Add Image">
           <Add />
-          <Typography variant="caption">I</Typography>
+          <Typography variant="caption">Image</Typography>
         </IconButton>
         <IconButton color="primary" onClick={() => setOpenVideoModal(true)} aria-label="Add Video">
           <Add />
-          <Typography variant="caption">V</Typography>
+          <Typography variant="caption">Video</Typography>
         </IconButton>
         <IconButton color="primary" onClick={() => setOpenCodeModal(true)} aria-label="Add Code">
           <Add />
-          <Typography variant="caption">C</Typography>
+          <Typography variant="caption">Code</Typography>
         </IconButton>
+      </Stack>
+
+      {/* Slide Container */}
+      <Box
+        sx={{
+          position: 'relative',
+          width: '800px',
+          height: '600px',
+          border: '1px solid #ccc',
+          margin: '0 auto',
+          backgroundColor: '#ffffff', // Set slide background to white
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        aria-label="Slide Editor"
+      >
+        {elements.length > 0 ? (
+          elements.map((element) => renderElement(element))
+        ) : (
+          <Typography variant="h6" color="textSecondary" sx={{ textAlign: 'center' }}>
+            No elements in this slide.
+          </Typography>
+        )}
       </Box>
 
       {/* Add Element Modals */}
