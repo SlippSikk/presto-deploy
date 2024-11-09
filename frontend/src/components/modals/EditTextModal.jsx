@@ -2,12 +2,25 @@
 
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Grid } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Grid,
+} from '@mui/material';
+
+// Optional: Import validation helper if you have one
+// import { validateHex } from '../../utils/validateHex';
 
 const EditTextModal = ({ open, onClose, element, onUpdate }) => {
   const [content, setContent] = useState(element.content);
   const [fontSize, setFontSize] = useState(element.fontSize);
   const [color, setColor] = useState(element.color);
+  const [sizeWidth, setSizeWidth] = useState(element.size.width);
+  const [sizeHeight, setSizeHeight] = useState(element.size.height);
   const [error, setError] = useState('');
 
   const validateHex = (hex) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
@@ -21,12 +34,30 @@ const EditTextModal = ({ open, onClose, element, onUpdate }) => {
       setError('Invalid HEX color code');
       return;
     }
-    const updatedElement = { ...element, content, fontSize, color };
+    if (
+      isNaN(sizeWidth) ||
+      sizeWidth < 1 ||
+      sizeWidth > 100 ||
+      isNaN(sizeHeight) ||
+      sizeHeight < 1 ||
+      sizeHeight > 100
+    ) {
+      setError('Size dimensions must be between 1% and 100%');
+      return;
+    }
+
+    const updatedElement = {
+      ...element,
+      content,
+      fontSize,
+      color,
+      size: { width: sizeWidth, height: sizeHeight },
+    };
     onUpdate(updatedElement);
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Edit Text Element</DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -67,6 +98,28 @@ const EditTextModal = ({ open, onClose, element, onUpdate }) => {
               aria-label="Text Color"
             />
           </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Width (%)"
+              type="number"
+              inputProps={{ min: 1, max: 100 }}
+              fullWidth
+              value={sizeWidth}
+              onChange={(e) => setSizeWidth(parseInt(e.target.value, 10))}
+              aria-label="Width Percentage"
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Height (%)"
+              type="number"
+              inputProps={{ min: 1, max: 100 }}
+              fullWidth
+              value={sizeHeight}
+              onChange={(e) => setSizeHeight(parseInt(e.target.value, 10))}
+              aria-label="Height Percentage"
+            />
+          </Grid>
           {error && (
             <Grid item xs={12}>
               <span style={{ color: 'red' }}>{error}</span>
@@ -87,7 +140,17 @@ const EditTextModal = ({ open, onClose, element, onUpdate }) => {
 EditTextModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  element: PropTypes.object.isRequired,
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired,
+    fontSize: PropTypes.number.isRequired,
+    color: PropTypes.string.isRequired,
+    size: PropTypes.shape({
+      width: PropTypes.number.isRequired,
+      height: PropTypes.number.isRequired,
+    }).isRequired,
+  }).isRequired,
   onUpdate: PropTypes.func.isRequired,
 };
 
