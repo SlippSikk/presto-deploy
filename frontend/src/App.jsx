@@ -1,12 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
+import PresentationPage from './pages/PresentationPage'; // Import PresentationPage
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+/**
+ * Custom theme for the application using MUI's ThemeProvider.
+ * Defines primary and secondary color palettes.
+ */
 const theme = createTheme({
   palette: {
     primary: {
@@ -18,25 +24,44 @@ const theme = createTheme({
   },
 });
 
-function App() {
+/**
+ * App component that sets up the routing and theming for the application.
+ * Includes the Navbar and defines routes for various pages.
+ */
+const App = () => {
   return (
     <ThemeProvider theme={theme}>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
+      <Navbar />
+      <Routes>
+        {/* Redirect root to /dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" />} />
+
+        {/* Public Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/landing" element={<LandingPage />} /> {/* If applicable */}
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/presentation/:id"
+          element={
+            <PrivateRoute>
+              <PresentationPage />
+            </PrivateRoute>
+          }
+        />
+
+      </Routes>
     </ThemeProvider>
   );
-}
+};
 
-export default App
+export default App;
