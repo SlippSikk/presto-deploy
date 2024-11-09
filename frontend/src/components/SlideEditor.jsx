@@ -15,12 +15,21 @@ import AddTextModal from './modals/AddTextModal';
 import AddImageModal from './modals/AddImageModal';
 import AddVideoModal from './modals/AddVideoModal';
 import AddCodeModal from './modals/AddCodeModal';
+import EditTextModal from './modals/EditTextModal'; // New import
+import EditImageModal from './modals/EditImageModal'; // New import
+import EditVideoModal from './modals/EditVideoModal'; // New import
+import EditCodeModal from './modals/EditCodeModal'; // New import
 
 const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const [openTextModal, setOpenTextModal] = useState(false);
   const [openImageModal, setOpenImageModal] = useState(false);
   const [openVideoModal, setOpenVideoModal] = useState(false);
   const [openCodeModal, setOpenCodeModal] = useState(false);
+  
+  // State for editing elements
+  const [editingElement, setEditingElement] = useState(null);
+  const [openEditModal, setOpenEditModal] = useState(false);
+
   const { deleteElement } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
@@ -79,7 +88,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const style = {
       position: 'absolute',
       border: '1px solid grey',
-      backgroundColor: 'white',
+      backgroundColor: 'white', // Ensure element background is white
       padding: '5px',
       overflow: 'hidden',
       display: 'flex',
@@ -151,9 +160,62 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   };
 
   const handleEditElement = (element) => {
-    // Implement editing logic, possibly opening a modal similar to add modals
-    // For brevity, this is not fully implemented here
-    console.log('Edit element:', element);
+    setEditingElement(element);
+    setOpenEditModal(true);
+  };
+
+  const handleUpdateElement = (updatedElement) => {
+    updateSlide(presentationId, slide.id, {
+      ...slide,
+      elements: slide.elements.map((el) => (el.id === updatedElement.id ? updatedElement : el)),
+    });
+    setOpenEditModal(false);
+    setEditingElement(null);
+  };
+
+  const getEditModal = () => {
+    if (!editingElement) return null;
+
+    switch (editingElement.type) {
+      case ELEMENT_TYPES.TEXT:
+        return (
+          <EditTextModal
+            open={openEditModal}
+            onClose={() => setOpenEditModal(false)}
+            element={editingElement}
+            onUpdate={handleUpdateElement}
+          />
+        );
+      case ELEMENT_TYPES.IMAGE:
+        return (
+          <EditImageModal
+            open={openEditModal}
+            onClose={() => setOpenEditModal(false)}
+            element={editingElement}
+            onUpdate={handleUpdateElement}
+          />
+        );
+      case ELEMENT_TYPES.VIDEO:
+        return (
+          <EditVideoModal
+            open={openEditModal}
+            onClose={() => setOpenEditModal(false)}
+            element={editingElement}
+            onUpdate={handleUpdateElement}
+          />
+        );
+      case ELEMENT_TYPES.CODE:
+        return (
+          <EditCodeModal
+            open={openEditModal}
+            onClose={() => setOpenEditModal(false)}
+            element={editingElement}
+            onUpdate={handleUpdateElement}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -164,7 +226,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         height: '600px',
         border: '1px solid #ccc',
         margin: '0 auto',
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#ffffff', // Set slide background to white
       }}
       aria-label="Slide Editor"
     >
@@ -201,6 +263,9 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       <AddImageModal open={openImageModal} onClose={() => setOpenImageModal(false)} onAdd={handleAddElement} />
       <AddVideoModal open={openVideoModal} onClose={() => setOpenVideoModal(false)} onAdd={handleAddElement} />
       <AddCodeModal open={openCodeModal} onClose={() => setOpenCodeModal(false)} onAdd={handleAddElement} />
+
+      {/* Edit Element Modal */}
+      {getEditModal()}
     </Box>
   );
 };
