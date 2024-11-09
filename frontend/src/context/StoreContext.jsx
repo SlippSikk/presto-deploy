@@ -1,3 +1,5 @@
+// src/context/StoreContext.jsx
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { getStore, setStore } from '../services/api';
 import { AuthContext } from './AuthContext';
@@ -33,15 +35,30 @@ export const StoreProvider = ({ children }) => {
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
 
-          // Corrected assignment: Ensure presentations are correctly accessed
-          const fetchedStore = response.data && response.data.store && Array.isArray(response.data.store.presentations)
-            ? response.data.store
-            : { presentations: [] };
+          // Ensure the store has presentations and each presentation has slides with elements
+          const fetchedStore =
+            response.data &&
+            response.data.store &&
+            Array.isArray(response.data.store.presentations)
+              ? {
+                  presentations: response.data.store.presentations.map((presentation) => ({
+                    ...presentation,
+                    slides: Array.isArray(presentation.slides)
+                      ? presentation.slides.map((slide) => ({
+                          ...slide,
+                          elements: Array.isArray(slide.elements) ? slide.elements : [],
+                        }))
+                      : [{ id: `slide-${Date.now()}`, elements: [] }],
+                  })),
+                }
+              : { presentations: [] };
+
+          console.log('Fetched Store:', fetchedStore); // Additional debugging
 
           setStoreState(fetchedStore);
           setLoading(false);
         } catch (err) {
-          console.error('Error fetching store data:', err); // Enhanced error logging
+          console.error('Error fetching store data:', err);
           setError('Failed to load store data.');
           setStoreState({ presentations: [] });
           setLoading(false);
@@ -77,10 +94,10 @@ export const StoreProvider = ({ children }) => {
    * @param {object} presentation - The presentation object to add.
    */
   const addPresentation = async (presentation) => {
-    // Create an initial slide with a unique ID
+    // Create an initial slide with a unique ID and empty elements array
     const initialSlide = {
       id: `slide-${Date.now()}`, // Unique ID for the slide
-      content: '', // Default empty content
+      elements: [], // Initialize with no elements
     };
 
     // Add the initial slide and default thumbnail to the presentation's slides array
@@ -97,8 +114,6 @@ export const StoreProvider = ({ children }) => {
 
     await updateStoreData(updatedStore);
   };
-
-  
 
   /**
    * Updates an existing presentation in the store.
@@ -201,7 +216,92 @@ export const StoreProvider = ({ children }) => {
   
     await updateStoreData(updatedStore);
   };
-  
+
+  /**
+   * Adds a new element to a specific slide.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {string} slideId - ID of the slide.
+   * @param {object} element - The element object to add.
+   */
+  const addElement = async (presentationId, slideId, element) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? {
+              ...presentation,
+              slides: presentation.slides.map((slide) =>
+                slide.id === slideId
+                  ? { ...slide, elements: [...slide.elements, element] }
+                  : slide
+              ),
+            }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+   * Updates an existing element in a specific slide.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {string} slideId - ID of the slide.
+   * @param {object} updatedElement - The updated element object.
+   */
+  const updateElement = async (presentationId, slideId, updatedElement) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? {
+              ...presentation,
+              slides: presentation.slides.map((slide) =>
+                slide.id === slideId
+                  ? {
+                      ...slide,
+                      elements: slide.elements.map((element) =>
+                        element.id === updatedElement.id ? updatedElement : element
+                      ),
+                    }
+                  : slide
+              ),
+            }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+   * Deletes an element from a specific slide.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {string} slideId - ID of the slide.
+   * @param {string} elementId - ID of the element to delete.
+   */
+  const deleteElement = async (presentationId, slideId, elementId) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? {
+              ...presentation,
+              slides: presentation.slides.map((slide) =>
+                slide.id === slideId
+                  ? {
+                      ...slide,
+                      elements: slide.elements.filter((element) => element.id !== elementId),
+                    }
+                  : slide
+              ),
+            }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
 
   return (
     <StoreContext.Provider
@@ -215,6 +315,9 @@ export const StoreProvider = ({ children }) => {
         addSlide,
         updateSlide,
         deleteSlide,
+        addElement,
+        updateElement,
+        deleteElement,
         setStoreState,
       }}
     >

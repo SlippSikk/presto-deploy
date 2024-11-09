@@ -1,8 +1,8 @@
 // src/components/SlideEditor.jsx
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Box, Button, IconButton } from '@mui/material';
+import { Box, Button, IconButton, Typography } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
@@ -23,28 +23,47 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const [openCodeModal, setOpenCodeModal] = useState(false);
   const { deleteElement } = useContext(StoreContext);
 
+  // Debugging: Log the slide prop
+  useEffect(() => {
+    console.log('Slide prop:', slide);
+  }, [slide]);
+
+  // Defensive check: Ensure slide is defined
+  if (!slide) {
+    return (
+      <Box>
+        <Typography variant="h6">Slide data is unavailable.</Typography>
+      </Box>
+    );
+  }
+
+  // Ensure elements is an array
+  const elements = Array.isArray(slide.elements) ? slide.elements : [];
+
   const handleAddElement = (type, elementData) => {
     const newElement = {
       id: `element-${Date.now()}`,
       type,
       position: { x: 0, y: 0 },
       size: { width: 30, height: 10 },
-      layer: slide.elements.length + 1,
+      layer: elements.length + 1,
       ...elementData,
     };
-    const updatedElements = [...slide.elements, newElement];
+    const updatedElements = [...elements, newElement];
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
   const handleElementDragStop = (e, d, element) => {
-    const updatedElements = slide.elements.map((el) =>
-      el.id === element.id ? { ...el, position: { x: (d.x / 800) * 100, y: (d.y / 600) * 100 } } : el
+    const updatedElements = elements.map((el) =>
+      el.id === element.id
+        ? { ...el, position: { x: (d.x / 800) * 100, y: (d.y / 600) * 100 } }
+        : el
     );
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
   const handleElementResizeStop = (e, direction, ref, delta, position, element) => {
-    const updatedElements = slide.elements.map((el) =>
+    const updatedElements = elements.map((el) =>
       el.id === element.id
         ? {
             ...el,
@@ -66,6 +85,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      cursor: 'move', // Indicate draggable
     };
 
     let content;
@@ -121,6 +141,8 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
             e.preventDefault();
             deleteElement(presentationId, slide.id, element.id);
           }}
+          aria-label={`${element.type} element`}
+          tabIndex={0} // Make focusable
         >
           {content}
         </Box>
@@ -131,25 +153,46 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const handleEditElement = (element) => {
     // Implement editing logic, possibly opening a modal similar to add modals
     // For brevity, this is not fully implemented here
+    console.log('Edit element:', element);
   };
 
   return (
-    <Box sx={{ position: 'relative', width: '800px', height: '600px', border: '1px solid #ccc', margin: '0 auto' }}>
-      {slide.elements.map((element) => renderElement(element))}
+    <Box
+      sx={{
+        position: 'relative',
+        width: '800px',
+        height: '600px',
+        border: '1px solid #ccc',
+        margin: '0 auto',
+        backgroundColor: '#f9f9f9',
+      }}
+      aria-label="Slide Editor"
+    >
+      {elements.length > 0 ? (
+        elements.map((element) => renderElement(element))
+      ) : (
+        <Typography variant="h6" color="textSecondary">
+          No elements in this slide.
+        </Typography>
+      )}
 
       {/* Controls to Add Elements */}
       <Box sx={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 1 }}>
         <IconButton color="primary" onClick={() => setOpenTextModal(true)} aria-label="Add Text">
-          <Add /> T
+          <Add />
+          <Typography variant="caption">T</Typography>
         </IconButton>
         <IconButton color="primary" onClick={() => setOpenImageModal(true)} aria-label="Add Image">
-          <Add /> I
+          <Add />
+          <Typography variant="caption">I</Typography>
         </IconButton>
         <IconButton color="primary" onClick={() => setOpenVideoModal(true)} aria-label="Add Video">
-          <Add /> V
+          <Add />
+          <Typography variant="caption">V</Typography>
         </IconButton>
         <IconButton color="primary" onClick={() => setOpenCodeModal(true)} aria-label="Add Code">
-          <Add /> C
+          <Add />
+          <Typography variant="caption">C</Typography>
         </IconButton>
       </Box>
 
@@ -166,7 +209,7 @@ SlideEditor.propTypes = {
   presentationId: PropTypes.string.isRequired,
   slide: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    elements: PropTypes.arrayOf(PropTypes.object).isRequired,
+    elements: PropTypes.arrayOf(PropTypes.object),
   }).isRequired,
   updateSlide: PropTypes.func.isRequired,
 };
