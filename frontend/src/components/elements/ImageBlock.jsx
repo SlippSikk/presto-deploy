@@ -2,14 +2,42 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Box } from '@mui/material';
 
 const ImageBlock = ({ src, alt }) => {
-  return <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />;
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        backgroundColor: '#f0f0f0', // Optional: Placeholder background
+      }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        style={{
+          maxWidth: '100%',
+          maxHeight: '100%',
+          objectFit: 'contain', // Adjust based on desired behavior
+        }}
+        draggable={false} // Prevent default drag behavior
+      />
+    </Box>
+  );
 };
 
 ImageBlock.propTypes = {
   src: PropTypes.string.isRequired,
-  alt: PropTypes.string.isRequired,
+  alt: PropTypes.string,
+};
+
+ImageBlock.defaultProps = {
+  alt: 'Image',
 };
 
 export default ImageBlock;

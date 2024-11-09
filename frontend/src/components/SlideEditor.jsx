@@ -1,6 +1,6 @@
 // src/components/SlideEditor.jsx
 
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Box, IconButton, Typography, Stack } from '@mui/material';
 import { Add } from '@mui/icons-material';
@@ -26,7 +26,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const [openImageModal, setOpenImageModal] = useState(false);
   const [openVideoModal, setOpenVideoModal] = useState(false);
   const [openCodeModal, setOpenCodeModal] = useState(false);
-  
+
   // State for editing elements
   const [editingElement, setEditingElement] = useState(null);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -50,12 +50,32 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // Ensure elements is an array
   const elements = Array.isArray(slide.elements) ? slide.elements : [];
 
+  // Ref and state to track container size
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const { clientWidth, clientHeight } = containerRef.current;
+        setContainerSize({ width: clientWidth, height: clientHeight }); // Corrected
+      }
+    };
+
+    // Initial size update
+    updateSize();
+
+    // Update size on window resize
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
   const handleAddElement = (type, elementData) => {
     const newElement = {
       id: `element-${Date.now()}`,
       type,
-      position: { x: 50, y: 50 }, // Center position
-      size: { width: 30, height: 10 },
+      position: { x: 50, y: 50 }, // Center position in percentages
+      size: { width: 30, height: 10 }, // Default size in percentages
       layer: elements.length + 1,
       ...elementData,
     };
@@ -66,7 +86,13 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const handleElementDragStop = (e, d, element) => {
     const updatedElements = elements.map((el) =>
       el.id === element.id
-        ? { ...el, position: { x: (d.x / 800) * 100, y: (d.y / 600) * 100 } }
+        ? {
+            ...el,
+            position: {
+              x: (d.x / containerSize.width) * 100,
+              y: (d.y / containerSize.height) * 100,
+            },
+          }
         : el
     );
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
@@ -77,8 +103,14 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       el.id === element.id
         ? {
             ...el,
-            size: { width: (ref.offsetWidth / 800) * 100, height: (ref.offsetHeight / 600) * 100 },
-            position: { x: (position.x / 800) * 100, y: (position.y / 600) * 100 },
+            size: {
+              width: (ref.offsetWidth / containerSize.width) * 100,
+              height: (ref.offsetHeight / containerSize.height) * 100,
+            },
+            position: {
+              x: (position.x / containerSize.width) * 100,
+              y: (position.y / containerSize.height) * 100,
+            },
           }
         : el
     );
@@ -101,7 +133,13 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     let content;
     switch (element.type) {
       case ELEMENT_TYPES.TEXT:
-        content = <TextBlock content={element.content} fontSize={element.fontSize} color={element.color} />;
+        content = (
+          <TextBlock
+            content={element.content}
+            fontSize={element.fontSize}
+            color={element.color}
+          />
+        );
         break;
       case ELEMENT_TYPES.IMAGE:
         content = <ImageBlock src={element.src} alt={element.alt} />;
@@ -110,7 +148,13 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         content = <VideoBlock src={element.src} autoPlay={element.autoPlay} />;
         break;
       case ELEMENT_TYPES.CODE:
-        content = <CodeBlock code={element.code} language={element.language} fontSize={element.fontSize} />;
+        content = (
+          <CodeBlock
+            code={element.code}
+            language={element.language}
+            fontSize={element.fontSize}
+          />
+        );
         break;
       default:
         return null;
@@ -124,10 +168,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           height: `${element.size.height}%`,
         }}
         position={{
-          x: (element.position.x / 100) * 800, // Assuming slide width is 800px
-          y: (element.position.y / 100) * 600, // Assuming slide height is 600px
+          x: (element.position.x / 100) * containerSize.width,
+          y: (element.position.y / 100) * containerSize.height,
         }}
-        bounds="parent"
+        // Removed bounds="parent" to allow dragging up to edges and beyond
         onDragStop={(e, d) => handleElementDragStop(e, d, element)}
         onResizeStop={(e, direction, ref, delta, position) =>
           handleElementResizeStop(e, direction, ref, delta, position, element)
@@ -143,6 +187,12 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           topLeft: true,
           topRight: true,
         }}
+        // Optionally, set minimum and maximum sizes
+        minWidth={50}
+        minHeight={50}
+        // maxWidth and maxHeight can be set based on container size if needed
+        // Allow elements to be dragged outside by not setting bounds
+        dragGrid={[1, 1]} // Optional: Snap to 1px grid for smoother dragging
       >
         <Box
           sx={style}
@@ -168,7 +218,9 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const handleUpdateElement = (updatedElement) => {
     updateSlide(presentationId, slide.id, {
       ...slide,
-      elements: slide.elements.map((el) => (el.id === updatedElement.id ? updatedElement : el)),
+      elements: slide.elements.map((el) =>
+        el.id === updatedElement.id ? updatedElement : el
+      ),
     });
     setOpenEditModal(false);
     setEditingElement(null);
@@ -223,19 +275,35 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     <Box>
       {/* Controls to Add Elements */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <IconButton color="primary" onClick={() => setOpenTextModal(true)} aria-label="Add Text">
+        <IconButton
+          color="primary"
+          onClick={() => setOpenTextModal(true)}
+          aria-label="Add Text"
+        >
           <Add />
           <Typography variant="caption">Text</Typography>
         </IconButton>
-        <IconButton color="primary" onClick={() => setOpenImageModal(true)} aria-label="Add Image">
+        <IconButton
+          color="primary"
+          onClick={() => setOpenImageModal(true)}
+          aria-label="Add Image"
+        >
           <Add />
           <Typography variant="caption">Image</Typography>
         </IconButton>
-        <IconButton color="primary" onClick={() => setOpenVideoModal(true)} aria-label="Add Video">
+        <IconButton
+          color="primary"
+          onClick={() => setOpenVideoModal(true)}
+          aria-label="Add Video"
+        >
           <Add />
           <Typography variant="caption">Video</Typography>
         </IconButton>
-        <IconButton color="primary" onClick={() => setOpenCodeModal(true)} aria-label="Add Code">
+        <IconButton
+          color="primary"
+          onClick={() => setOpenCodeModal(true)}
+          aria-label="Add Code"
+        >
           <Add />
           <Typography variant="caption">Code</Typography>
         </IconButton>
@@ -243,17 +311,18 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
       {/* Slide Container */}
       <Box
+        ref={containerRef}
         sx={{
           position: 'relative',
-          width: '800px',
-          height: '600px',
+          height: '60vh',
           border: '1px solid #ccc',
           margin: '0 auto',
           backgroundColor: '#ffffff', // Set slide background to white
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          overflow: 'clip'
+          overflow: 'hidden', // Ensure elements outside are clipped
+          boxSizing: 'border-box', // Ensure border is included in size calculations
         }}
         aria-label="Slide Editor"
       >
@@ -267,10 +336,26 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       </Box>
 
       {/* Add Element Modals */}
-      <AddTextModal open={openTextModal} onClose={() => setOpenTextModal(false)} onAdd={handleAddElement} />
-      <AddImageModal open={openImageModal} onClose={() => setOpenImageModal(false)} onAdd={handleAddElement} />
-      <AddVideoModal open={openVideoModal} onClose={() => setOpenVideoModal(false)} onAdd={handleAddElement} />
-      <AddCodeModal open={openCodeModal} onClose={() => setOpenCodeModal(false)} onAdd={handleAddElement} />
+      <AddTextModal
+        open={openTextModal}
+        onClose={() => setOpenTextModal(false)}
+        onAdd={handleAddElement}
+      />
+      <AddImageModal
+        open={openImageModal}
+        onClose={() => setOpenImageModal(false)}
+        onAdd={handleAddElement}
+      />
+      <AddVideoModal
+        open={openVideoModal}
+        onClose={() => setOpenVideoModal(false)}
+        onAdd={handleAddElement}
+      />
+      <AddCodeModal
+        open={openCodeModal}
+        onClose={() => setOpenCodeModal(false)}
+        onAdd={handleAddElement}
+      />
 
       {/* Edit Element Modal */}
       {getEditModal()}
