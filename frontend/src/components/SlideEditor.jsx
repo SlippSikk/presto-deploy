@@ -74,7 +74,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const newElement = {
       id: `element-${Date.now()}`,
       type,
-      position: { x: 50, y: 50 }, // Center position in percentages
+      position: { x: 0, y: 0 }, // Center position in percentages
       size: { width: 30, height: 10 }, // Default size in percentages
       layer: elements.length + 1,
       ...elementData,
