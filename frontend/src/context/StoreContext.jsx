@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { getStore, setStore } from '../services/api';
 import { AuthContext } from './AuthContext';
 import PropTypes from 'prop-types';
+import defaultThumbnail from '../assets/default-thumbnail.jpg';
 
 /**
  * StoreContext provides store data and functions to manage presentations and slides.
@@ -81,20 +82,22 @@ export const StoreProvider = ({ children }) => {
       id: `slide-${Date.now()}`, // Unique ID for the slide
       content: '', // Default empty content
     };
-  
-    // Add the initial slide to the presentation's slides array
+
+    // Add the initial slide and default thumbnail to the presentation's slides array
     const newPresentation = {
       ...presentation,
       slides: [initialSlide],
+      thumbnail: defaultThumbnail, // Set the default thumbnail
     };
-  
+
     const updatedStore = {
       ...store,
       presentations: [...store.presentations, newPresentation],
     };
-  
+
     await updateStoreData(updatedStore);
   };
+
   
 
   /**
