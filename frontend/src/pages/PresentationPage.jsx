@@ -1,5 +1,3 @@
-// src/pages/PresentationPage.jsx
-
 import React, { useState, useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -19,6 +17,7 @@ import { Edit, ArrowBack } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideEditor from '../components/SlideEditor';
+import SlideNumber from '../components/SlideNumber'; // Import SlideNumber
 
 const PresentationPage = () => {
   const { id } = useParams();
@@ -196,7 +195,14 @@ const PresentationPage = () => {
       )}
 
       {/* Slide Content */}
-      <SlideEditor presentationId={id} slide={currentSlide} updateSlide={updateSlideHandler} />
+      <Box sx={{ position: 'relative' }}>
+        <SlideEditor presentationId={id} slide={currentSlide} updateSlide={updateSlideHandler} />
+        <SlideNumber
+          current={currentSlideIndex + 1}
+          total={Array.isArray(presentation.slides) ? presentation.slides.length : 0}
+          sx={{ position: 'absolute', bottom: 8, right: 16 }} // Position SlideNumber
+        />
+      </Box>
 
       {/* Slide Controls */}
       <SlideControls
