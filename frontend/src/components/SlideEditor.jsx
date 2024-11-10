@@ -174,7 +174,35 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         content = <ImageBlock src={element.src} alt={element.alt} />;
         break;
       case ELEMENT_TYPES.VIDEO:
-        content = <VideoBlock src={element.src} autoPlay={element.autoPlay} />;
+        content = (
+          <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+          }}
+          onDoubleClick={(e) => {
+            e.stopPropagation(); // Prevent interaction with the iframe
+            handleElementDoubleClick(element);
+          }}
+        >
+          {selectedElementId === element.id && (
+            <Box
+              sx={{
+                position: 'absolute',
+                width: 'calc(100% + 10px)',
+                height: 'calc(100% + 10px)',
+                top: '-5px',
+                left: '-5px',
+                border: '2px solid grey',
+                zIndex: 1,
+              }}
+            />
+          )}
+
+          <VideoBlock src={element.src} autoPlay={element.autoPlay} />
+        </Box>
+        );
         break;
       case ELEMENT_TYPES.CODE:
         content = (
@@ -237,10 +265,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         minWidth={(1 / 100) * containerSize.width} // 1% of container width
         minHeight={(1 / 100) * containerSize.height} // 1% of container height
         enableResizing={{
-          top: selectedElementId === element.id,
-          right: selectedElementId === element.id,
-          bottom: selectedElementId === element.id,
-          left: selectedElementId === element.id,
+          top: false,
+          right: false,
+          bottom: false,
+          left: false,
           topRight: selectedElementId === element.id,
           bottomRight: selectedElementId === element.id,
           bottomLeft: selectedElementId === element.id,
@@ -297,7 +325,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                border: '1px solid white',
+                // border: '1px solid white',
                 top: '-2.5px',
                 left: '-2.5px',
                 cursor: 'nwse-resize',
@@ -309,7 +337,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                border: '1px solid white',
+                // border: '1px solid white',
                 top: '-2.5px',
                 right: '-2.5px',
                 cursor: 'nesw-resize',
@@ -321,7 +349,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                border: '1px solid white',
+                // border: '1px solid white',
                 bottom: '-2.5px',
                 left: '-2.5px',
                 cursor: 'nesw-resize',
@@ -333,7 +361,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                border: '1px solid white',
+                // border: '1px solid white',
                 bottom: '-2.5px',
                 right: '-2.5px',
                 cursor: 'nwse-resize',
