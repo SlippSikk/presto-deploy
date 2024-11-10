@@ -9,18 +9,14 @@ import {
   DialogActions,
   Button,
   TextField,
-  Grid,
+  Typography,
+  Stack,
 } from '@mui/material';
-
-// Optional: Import validation helper if you have one
-// import { validateHex } from '../../utils/validateHex';
 
 const EditTextModal = ({ open, onClose, element, onUpdate }) => {
   const [content, setContent] = useState(element.content);
   const [fontSize, setFontSize] = useState(element.fontSize);
   const [color, setColor] = useState(element.color);
-  const [sizeWidth, setSizeWidth] = useState(element.size.width);
-  const [sizeHeight, setSizeHeight] = useState(element.size.height);
   const [error, setError] = useState('');
 
   const validateHex = (hex) => /^#([0-9A-F]{3}){1,2}$/i.test(hex);
@@ -34,15 +30,8 @@ const EditTextModal = ({ open, onClose, element, onUpdate }) => {
       setError('Invalid HEX color code');
       return;
     }
-    if (
-      isNaN(sizeWidth) ||
-      sizeWidth < 1 ||
-      sizeWidth > 100 ||
-      isNaN(sizeHeight) ||
-      sizeHeight < 1 ||
-      sizeHeight > 100
-    ) {
-      setError('Size dimensions must be between 1% and 100%');
+    if (isNaN(fontSize) || fontSize < 0.5 || fontSize > 5) {
+      setError('Font size must be between 0.5em and 5em');
       return;
     }
 
@@ -51,85 +40,66 @@ const EditTextModal = ({ open, onClose, element, onUpdate }) => {
       content,
       fontSize,
       color,
-      size: { width: sizeWidth, height: sizeHeight },
+      // size remains unchanged
     };
     onUpdate(updatedElement);
+    setError('');
+    onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Edit Text Element</DialogTitle>
       <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Content"
-              type="text"
-              fullWidth
-              multiline
-              rows={4}
-              variant="standard"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              aria-label="Text Content"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Font Size (em)"
-              type="number"
-              inputProps={{ step: 0.1, min: 0.5, max: 5 }}
-              fullWidth
-              value={fontSize}
-              onChange={(e) => setFontSize(parseFloat(e.target.value))}
-              aria-label="Font Size"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Color (HEX)"
-              type="text"
-              fullWidth
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              placeholder="#000000"
-              aria-label="Text Color"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Width (%)"
-              type="number"
-              inputProps={{ min: 1, max: 100 }}
-              fullWidth
-              value={sizeWidth}
-              onChange={(e) => setSizeWidth(parseInt(e.target.value, 10))}
-              aria-label="Width Percentage"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Height (%)"
-              type="number"
-              inputProps={{ min: 1, max: 100 }}
-              fullWidth
-              value={sizeHeight}
-              onChange={(e) => setSizeHeight(parseInt(e.target.value, 10))}
-              aria-label="Height Percentage"
-            />
-          </Grid>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField
+            autoFocus
+            label="Content"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            value={content}
+            onChange={(e) => {
+              setContent(e.target.value);
+              setError(''); // Clear error when user starts typing
+            }}
+            aria-label="Text Content"
+          />
+
+          <TextField
+            label="Font Size (em)"
+            type="number"
+            inputProps={{ step: 0.1, min: 0.5, max: 5 }}
+            fullWidth
+            value={fontSize}
+            onChange={(e) => setFontSize(parseFloat(e.target.value))}
+            aria-label="Font Size"
+          />
+
+          <TextField
+            label="Color (HEX)"
+            type="text"
+            fullWidth
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            placeholder="#000000"
+            aria-label="Text Color"
+          />
+
           {error && (
-            <Grid item xs={12}>
-              <span style={{ color: 'red' }}>{error}</span>
-            </Grid>
+            <Typography variant="body2" color="error">
+              {error}
+            </Typography>
           )}
-        </Grid>
+        </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
+        <Button onClick={onClose} aria-label="Cancel Editing Text">
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary" aria-label="Save Text Changes">
           Save
         </Button>
       </DialogActions>
