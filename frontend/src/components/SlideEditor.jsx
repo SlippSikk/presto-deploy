@@ -290,7 +290,57 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
               pointerEvents: 'none', // Allow clicks to pass through
             }}
           >
-
+            {/* Resize Handles */}
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '5px',
+                height: '5px',
+                backgroundColor: 'blue',
+                border: '1px solid white',
+                top: '-2.5px',
+                left: '-2.5px',
+                cursor: 'nwse-resize',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '5px',
+                height: '5px',
+                backgroundColor: 'blue',
+                border: '1px solid white',
+                top: '-2.5px',
+                right: '-2.5px',
+                cursor: 'nesw-resize',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '5px',
+                height: '5px',
+                backgroundColor: 'blue',
+                border: '1px solid white',
+                bottom: '-2.5px',
+                left: '-2.5px',
+                cursor: 'nesw-resize',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                width: '5px',
+                height: '5px',
+                backgroundColor: 'blue',
+                border: '1px solid white',
+                bottom: '-2.5px',
+                right: '-2.5px',
+                cursor: 'nwse-resize',
+              }}
+            />
+          </Box>
+        )}
       </Rnd>
     );
   };
