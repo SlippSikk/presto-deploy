@@ -31,12 +31,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const [editingElement, setEditingElement] = useState(null);
   const [openEditModal, setOpenEditModal] = useState(false);
 
-  const { deleteElement } = useContext(StoreContext);
+  // State for selected element
+  const [selectedElementId, setSelectedElementId] = useState(null);
 
-  // Debugging: Log the slide prop
-  useEffect(() => {
-    console.log('Slide prop:', slide);
-  }, [slide]);
+  const { deleteElement } = useContext(StoreContext);
 
   // Defensive check: Ensure slide is defined
   if (!slide) {
@@ -74,7 +72,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const newElement = {
       id: `element-${Date.now()}`,
       type,
-      position: { x: 0, y: 0 }, // Center position in percentages
+      position: { x: 0, y: 0 }, // Top-left corner
       size: { width: 30, height: 10 }, // Default size in percentages
       layer: elements.length + 1,
       ...elementData,
@@ -83,144 +81,9 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
-  const handleElementDragStop = (e, d, element) => {
-    const updatedElements = elements.map((el) =>
-      el.id === element.id
-        ? {
-            ...el,
-            position: {
-              x: (d.x / containerSize.width) * 100,
-              y: (d.y / containerSize.height) * 100,
-            },
-          }
-        : el
-    );
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
-  };
-
-  const handleElementResizeStop = (e, direction, ref, delta, position, element) => {
-    const updatedElements = elements.map((el) =>
-      el.id === element.id
-        ? {
-            ...el,
-            size: {
-              width: (ref.offsetWidth / containerSize.width) * 100,
-              height: (ref.offsetHeight / containerSize.height) * 100,
-            },
-            position: {
-              x: (position.x / containerSize.width) * 100,
-              y: (position.y / containerSize.height) * 100,
-            },
-          }
-        : el
-    );
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
-  };
-
-  const renderElement = (element) => {
-    const style = {
-      position: 'absolute',
-      overflow: 'hidden', // Ensure clipping
-      cursor: 'move', // Indicate draggable
-      ...(element.type === ELEMENT_TYPES.TEXT && {
-        border: '1px solid grey',
-        backgroundColor: 'white', // Ensure element background is white
-        padding: '5px',
-      }),
-      ...( element.type === ELEMENT_TYPES.VIDEO && {
-        border: '3px solid grey',
-        backgroundColor: 'grey', // Ensure element background is white
-        padding: '5px',
-      }),
-    };
-
-    let content;
-    switch (element.type) {
-      case ELEMENT_TYPES.TEXT:
-        content = (
-          <TextBlock
-            content={element.content}
-            fontSize={element.fontSize}
-            color={element.color}
-          />
-        );
-        break;
-      case ELEMENT_TYPES.IMAGE:
-        content = <ImageBlock src={element.src} alt={element.alt} />;
-        break;
-      case ELEMENT_TYPES.VIDEO:
-        content = <VideoBlock src={element.src} autoPlay={element.autoPlay} />;
-        break;
-      case ELEMENT_TYPES.CODE:
-        content = (
-          <CodeBlock
-            code={element.code}
-            language={element.language}
-            fontSize={element.fontSize}
-          />
-        );
-        break;
-      default:
-        return null;
-    }
-
-    // Convert percentage sizes to pixels
-    const widthInPixels = (element.size.width / 100) * containerSize.width;
-    const heightInPixels = (element.size.height / 100) * containerSize.height;
-
-    // Convert percentage positions to pixels
-    const xInPixels = (element.position.x / 100) * containerSize.width;
-    const yInPixels = (element.position.y / 100) * containerSize.height;
-
-    return (
-      <Rnd
-        key={element.id}
-        size={{
-          width: widthInPixels,
-          height: heightInPixels,
-        }}
-        position={{
-          x: xInPixels,
-          y: yInPixels,
-        }}
-        onDragStop={(e, d) => handleElementDragStop(e, d, element)}
-        onResizeStop={(e, direction, ref, delta, position) =>
-          handleElementResizeStop(e, direction, ref, delta, position, element)
-        }
-        style={{ zIndex: element.layer }}
-        enableResizing={{
-          bottom: true,
-          bottomLeft: true,
-          bottomRight: true,
-          left: true,
-          right: true,
-          top: true,
-          topLeft: true,
-          topRight: true,
-        }}
-        minWidth={50}
-        minHeight={50}
-        dragGrid={[1, 1]} // Optional: Snap to 1px grid for smoother dragging
-      >
-        <Box
-          sx={{
-            ...style,
-            width: '100%',
-            height: '100%',
-            display: 'flex', // Changed from 'flex' to 'block'
-          }}
-          onDoubleClick={() => handleEditElement(element)}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            deleteElement(presentationId, slide.id, element.id);
-          }}
-          aria-label={`${element.type} element`}
-          tabIndex={0} // Make focusable
-        >
-          {content}
-        </Box>
-      </Rnd>
-    );
+  const handleElementClick = (e, element) => {
+    e.stopPropagation();
+    setSelectedElementId(element.id);
   };
 
   const handleEditElement = (element) => {
@@ -284,8 +147,130 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     }
   };
 
+  // Deselect element when clicking outside
+  const handleContainerClick = () => {
+    setSelectedElementId(null);
+  };
+
+  const renderHandles = (element) => {
+    if (selectedElementId !== element.id) return null;
+
+    const handleStyle = {
+      position: 'absolute',
+      width: '5px',
+      height: '5px',
+      backgroundColor: 'blue',
+      border: '1px solid white',
+      zIndex: 10,
+      cursor: 'pointer',
+    };
+
+    const corners = [
+      { corner: 'top-left', style: { top: '-3px', left: '-3px', cursor: 'nwse-resize' } },
+      { corner: 'top-right', style: { top: '-3px', right: '-3px', cursor: 'nesw-resize' } },
+      { corner: 'bottom-left', style: { bottom: '-3px', left: '-3px', cursor: 'nesw-resize' } },
+      { corner: 'bottom-right', style: { bottom: '-3px', right: '-3px', cursor: 'nwse-resize' } },
+    ];
+
+    return (
+      <>
+        {corners.map(({ corner, style }) => (
+          <Box
+            key={corner}
+            sx={{ ...handleStyle, ...style }}
+            onMouseDown={(e) => e.stopPropagation()} // Prevent triggering parent events
+            aria-label={`Resize handle ${corner}`}
+          />
+        ))}
+        {/* Central Move Handle */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '5px',
+            height: '5px',
+            backgroundColor: 'green',
+            border: '1px solid white',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10,
+            cursor: 'move',
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          aria-label="Move handle"
+        />
+      </>
+    );
+  };
+
+  const renderElement = (element) => {
+    let content;
+    switch (element.type) {
+      case ELEMENT_TYPES.TEXT:
+        content = (
+          <TextBlock
+            content={element.content}
+            fontSize={element.fontSize}
+            color={element.color}
+          />
+        );
+        break;
+      case ELEMENT_TYPES.IMAGE:
+        content = <ImageBlock src={element.src} alt={element.alt} />;
+        break;
+      case ELEMENT_TYPES.VIDEO:
+        content = <VideoBlock src={element.src} autoPlay={element.autoPlay} />;
+        break;
+      case ELEMENT_TYPES.CODE:
+        content = (
+          <CodeBlock
+            code={element.code}
+            language={element.language}
+            fontSize={element.fontSize}
+          />
+        );
+        break;
+      default:
+        return null;
+    }
+
+    // Convert percentage sizes to pixels
+    const widthInPixels = (element.size.width / 100) * containerSize.width;
+    const heightInPixels = (element.size.height / 100) * containerSize.height;
+
+    // Convert percentage positions to pixels
+    const xInPixels = (element.position.x / 100) * containerSize.width;
+    const yInPixels = (element.position.y / 100) * containerSize.height;
+
+    return (
+      <Rnd
+        key={element.id}
+        size={{
+          width: `${widthInPixels}px`,
+          height: `${heightInPixels}px`,
+        }}
+        position={{
+          x: xInPixels,
+          y: yInPixels,
+
+          onDoubleClick={() => handleEditElement(element)}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            deleteElement(presentationId, slide.id, element.id);
+          }}
+          onClick={(e) => handleElementClick(e, element)}
+          aria-label={`${element.type} element`}
+          tabIndex={0}
+        >
+          {content}
+          {renderHandles(element)}
+        </Box>
+      </Rnd>
+    );
+  };
+
   return (
-    <Box>
+    <Box onClick={handleContainerClick}>
       {/* Controls to Add Elements */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <IconButton
