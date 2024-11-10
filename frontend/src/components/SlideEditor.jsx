@@ -211,6 +211,24 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           </Box>
         );
         break;
+
+        case ELEMENT_TYPES.CODE:
+          content = (
+            <Box
+              sx={{
+                border: '1px solid lightgrey',
+                padding: '10px',
+                backgroundColor: '#f5f5f5', // Light grey background for code blocks
+                fontFamily: 'monospace', // Use monospace font for code
+                width: '100%',
+                height: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              <CodeBlock code={element.code} language={element.language} />
+            </Box>
+          );
+        break;
       default:
         return null;
     }
