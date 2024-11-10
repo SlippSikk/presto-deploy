@@ -10,11 +10,32 @@ import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
 import c from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
+// Register the languages with SyntaxHighlighter
 SyntaxHighlighter.registerLanguage('javascript', javascript);
 SyntaxHighlighter.registerLanguage('python', python);
 SyntaxHighlighter.registerLanguage('c', c);
 
-const CodeBlock = ({ code, language, fontSize }) => {
+// Helper function to detect language
+const detectLanguage = (code) => {
+  // Simple heuristics to determine the language
+  const cPattern = /#include\s*<.*?>|int\s+main\s*\(/;
+  const pythonPattern = /^\s*def\s+\w+\s*\(.*\):|import\s+\w+/m;
+  const jsPattern = /function\s+\w+\s*\(.*\)\s*{|console\.log\s*\(/;
+
+  if (cPattern.test(code)) {
+    return 'c';
+  } else if (pythonPattern.test(code)) {
+    return 'python';
+  } else if (jsPattern.test(code)) {
+    return 'javascript';
+  } else {
+    return 'plaintext'; // Fallback if none match
+  }
+};
+
+const CodeBlock = ({ code, fontSize }) => {
+  const language = detectLanguage(code);
+
   return (
     <Box
       sx={{
@@ -32,7 +53,7 @@ const CodeBlock = ({ code, language, fontSize }) => {
           margin: 0,
           padding: '0.5em',
           height: '100%',
-          overflow: 'hidden', // Allow scrolling if content exceeds
+          overflow: 'hidden', // Ensure content is clipped
           boxSizing: 'border-box',
         }}
       >
@@ -44,7 +65,6 @@ const CodeBlock = ({ code, language, fontSize }) => {
 
 CodeBlock.propTypes = {
   code: PropTypes.string.isRequired,
-  language: PropTypes.oneOf(['javascript', 'python', 'c']).isRequired,
   fontSize: PropTypes.number.isRequired,
 };
 

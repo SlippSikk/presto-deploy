@@ -9,13 +9,11 @@ import {
   DialogActions,
   Button,
   TextField,
-  Grid,
-  MenuItem,
+  Box,
 } from '@mui/material';
 
 const AddCodeModal = ({ open, onClose, onAdd }) => {
   const [code, setCode] = useState('');
-  const [language, setLanguage] = useState('javascript');
   const [fontSize, setFontSize] = useState(1);
   const [sizeWidth, setSizeWidth] = useState(50);
   const [sizeHeight, setSizeHeight] = useState(30);
@@ -26,10 +24,9 @@ const AddCodeModal = ({ open, onClose, onAdd }) => {
       setError('Code cannot be empty');
       return;
     }
-    onAdd('code', { code, language, fontSize, size: { width: sizeWidth, height: sizeHeight } });
+    onAdd('code', { code, fontSize, size: { width: sizeWidth, height: sizeHeight } });
     // Reset fields
     setCode('');
-    setLanguage('javascript');
     setFontSize(1);
     setSizeWidth(50);
     setSizeHeight(30);
@@ -41,34 +38,25 @@ const AddCodeModal = ({ open, onClose, onAdd }) => {
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Add Code Block</DialogTitle>
       <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
-          <Grid item xs={12}>
-            <TextField
-              label="Code"
-              fullWidth
-              multiline
-              rows={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-              aria-label="Code Content"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              select
-              label="Language"
-              fullWidth
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              aria-label="Programming Language"
-            >
-              <MenuItem value="javascript">JavaScript</MenuItem>
-              <MenuItem value="python">Python</MenuItem>
-              <MenuItem value="c">C</MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={6}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            mt: 1,
+          }}
+        >
+          <TextField
+            label="Code"
+            fullWidth
+            multiline
+            rows={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+            aria-label="Code Content"
+          />
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
               label="Font Size (em)"
               type="number"
@@ -78,8 +66,8 @@ const AddCodeModal = ({ open, onClose, onAdd }) => {
               onChange={(e) => setFontSize(parseFloat(e.target.value))}
               aria-label="Font Size"
             />
-          </Grid>
-          <Grid item xs={6}>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
               label="Width (%)"
               type="number"
@@ -89,8 +77,6 @@ const AddCodeModal = ({ open, onClose, onAdd }) => {
               onChange={(e) => setSizeWidth(parseInt(e.target.value, 10))}
               aria-label="Width Percentage"
             />
-          </Grid>
-          <Grid item xs={6}>
             <TextField
               label="Height (%)"
               type="number"
@@ -100,13 +86,13 @@ const AddCodeModal = ({ open, onClose, onAdd }) => {
               onChange={(e) => setSizeHeight(parseInt(e.target.value, 10))}
               aria-label="Height Percentage"
             />
-          </Grid>
+          </Box>
           {error && (
-            <Grid item xs={12}>
-              <span style={{ color: 'red' }}>{error}</span>
-            </Grid>
+            <Box sx={{ color: 'red' }}>
+              {error}
+            </Box>
           )}
-        </Grid>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
