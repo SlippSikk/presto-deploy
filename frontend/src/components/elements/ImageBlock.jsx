@@ -6,7 +6,13 @@ import { Box } from '@mui/material';
 
 const ImageBlock = ({ src, alt }) => {
   return (
-    <Box>
+    <Box      sx={{
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+      }}
+    >
       <img
         src={src}
         alt={alt}

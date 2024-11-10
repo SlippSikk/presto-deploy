@@ -31,10 +31,15 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const [editingElement, setEditingElement] = useState(null);
   const [openEditModal, setOpenEditModal] = useState(false);
 
-  // State for selected element
+  // State for selected element (for showing resize/move handles)
   const [selectedElementId, setSelectedElementId] = useState(null);
 
   const { deleteElement } = useContext(StoreContext);
+
+  // Debugging: Log the slide prop
+  useEffect(() => {
+    console.log('Slide prop:', slide);
+  }, [slide]);
 
   // Defensive check: Ensure slide is defined
   if (!slide) {
@@ -81,12 +86,20 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
-  const handleElementClick = (e, element) => {
-    e.stopPropagation();
-    setSelectedElementId(element.id);
+  const handleUpdateElementPositionAndSize = (id, position, size) => {
+    const updatedElements = elements.map((el) =>
+      el.id === id
+        ? {
+            ...el,
+            position, // { x: percentage, y: percentage }
+            size, // { width: percentage, height: percentage }
+          }
+        : el
+    );
+    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
-  const handleEditElement = (element) => {
+  const handleElementDoubleClick = (element) => {
     setEditingElement(element);
     setOpenEditModal(true);
   };
@@ -94,9 +107,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const handleUpdateElement = (updatedElement) => {
     updateSlide(presentationId, slide.id, {
       ...slide,
-      elements: slide.elements.map((el) =>
-        el.id === updatedElement.id ? updatedElement : el
-      ),
+      elements: slide.elements.map((el) => (el.id === updatedElement.id ? updatedElement : el)),
     });
     setOpenEditModal(false);
     setEditingElement(null);
@@ -147,62 +158,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     }
   };
 
-  // Deselect element when clicking outside
-  const handleContainerClick = () => {
-    setSelectedElementId(null);
-  };
-
-  const renderHandles = (element) => {
-    if (selectedElementId !== element.id) return null;
-
-    const handleStyle = {
-      position: 'absolute',
-      width: '5px',
-      height: '5px',
-      backgroundColor: 'blue',
-      border: '1px solid white',
-      zIndex: 10,
-      cursor: 'pointer',
-    };
-
-    const corners = [
-      { corner: 'top-left', style: { top: '-3px', left: '-3px', cursor: 'nwse-resize' } },
-      { corner: 'top-right', style: { top: '-3px', right: '-3px', cursor: 'nesw-resize' } },
-      { corner: 'bottom-left', style: { bottom: '-3px', left: '-3px', cursor: 'nesw-resize' } },
-      { corner: 'bottom-right', style: { bottom: '-3px', right: '-3px', cursor: 'nwse-resize' } },
-    ];
-
-    return (
-      <>
-        {corners.map(({ corner, style }) => (
-          <Box
-            key={corner}
-            sx={{ ...handleStyle, ...style }}
-            onMouseDown={(e) => e.stopPropagation()} // Prevent triggering parent events
-            aria-label={`Resize handle ${corner}`}
-          />
-        ))}
-        {/* Central Move Handle */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: '5px',
-            height: '5px',
-            backgroundColor: 'green',
-            border: '1px solid white',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 10,
-            cursor: 'move',
-          }}
-          onMouseDown={(e) => e.stopPropagation()}
-          aria-label="Move handle"
-        />
-      </>
-    );
-  };
-
   const renderElement = (element) => {
     let content;
     switch (element.type) {
@@ -246,122 +201,107 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       <Rnd
         key={element.id}
         size={{
-          width: `${widthInPixels}px`,
-          height: `${heightInPixels}px`,
+          width: widthInPixels,
+          height: heightInPixels,
         }}
         position={{
           x: xInPixels,
           y: yInPixels,
         }}
-        onDragStart={() => setSelectedElementId(element.id)}
         onDragStop={(e, d) => {
-          let newX = (d.x / containerSize.width) * 100;
-          let newY = (d.y / containerSize.height) * 100;
-
-          // Clamp within container
-          newX = Math.max(0, Math.min(newX, 100 - element.size.width));
-          newY = Math.max(0, Math.min(newY, 100 - element.size.height));
-
-          const updatedElements = elements.map((el) =>
-            el.id === element.id
-              ? {
-                  ...el,
-                  position: {
-                    x: newX,
-                    y: newY,
-                  },
-                }
-              : el
-          );
-
-          updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+          // Calculate new position in percentage
+          const newX = (d.x / containerSize.width) * 100;
+          const newY = (d.y / containerSize.height) * 100;
+          handleUpdateElementPositionAndSize(element.id, { x: newX, y: newY }, element.size);
         }}
         onResizeStop={(e, direction, ref, delta, position) => {
-          let newWidth = (ref.offsetWidth / containerSize.width) * 100;
-          let newHeight = (ref.offsetHeight / containerSize.height) * 100;
-          let newX = (position.x / containerSize.width) * 100;
-          let newY = (position.y / containerSize.height) * 100;
+          // Calculate new size and position in percentage
+          const newWidth = (ref.offsetWidth / containerSize.width) * 100;
+          const newHeight = (ref.offsetHeight / containerSize.height) * 100;
+          const newX = (position.x / containerSize.width) * 100;
+          const newY = (position.y / containerSize.height) * 100;
 
           // Enforce minimum size of 1%
-          newWidth = Math.max(newWidth, 1);
-          newHeight = Math.max(newHeight, 1);
+          const finalWidth = Math.max(newWidth, 1);
+          const finalHeight = Math.max(newHeight, 1);
 
           // Enforce boundaries
-          if (newX + newWidth > 100) {
-            newWidth = 100 - newX;
-          }
-          if (newY + newHeight > 100) {
-            newHeight = 100 - newY;
-          }
+          const maxWidth = 100 - newX;
+          const maxHeight = 100 - newY;
+          const finalWidthClamped = Math.min(finalWidth, maxWidth);
+          const finalHeightClamped = Math.min(finalHeight, maxHeight);
 
-          const updatedElements = elements.map((el) =>
-            el.id === element.id
-              ? {
-                  ...el,
-                  size: {
-                    width: newWidth,
-                    height: newHeight,
-                  },
-                  position: {
-                    x: newX,
-                    y: newY,
-                  },
-                }
-              : el
-          );
-
-          updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+          handleUpdateElementPositionAndSize(element.id, { x: newX, y: newY }, { width: finalWidthClamped, height: finalHeightClamped });
         }}
         bounds="parent"
-        enableResizing={selectedElementId === element.id}
+        minWidth={(1 / 100) * containerSize.width} // 1% of container width
+        minHeight={(1 / 100) * containerSize.height} // 1% of container height
+        enableResizing={{
+          top: selectedElementId === element.id,
+          right: selectedElementId === element.id,
+          bottom: selectedElementId === element.id,
+          left: selectedElementId === element.id,
+          topRight: selectedElementId === element.id,
+          bottomRight: selectedElementId === element.id,
+          bottomLeft: selectedElementId === element.id,
+          topLeft: selectedElementId === element.id,
+        }}
         disableDragging={selectedElementId !== element.id}
-        dragHandleClassName="move-handle"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedElementId(element.id);
+        }}
         style={{
           zIndex: element.layer,
+          border:
+            element.type === ELEMENT_TYPES.TEXT
+              ? '1px solid grey'
+              : element.type === ELEMENT_TYPES.VIDEO
+              ? '3px solid grey'
+              : 'none',
+          backgroundColor:
+            element.type === ELEMENT_TYPES.TEXT
+              ? 'white'
+              : element.type === ELEMENT_TYPES.VIDEO
+              ? 'grey'
+              : 'transparent',
+          padding: '5px',
+          boxSizing: 'border-box',
+          cursor: selectedElementId === element.id ? 'move' : 'pointer',
         }}
-        minWidth={(1 / 100) * containerSize.width}
-        minHeight={(1 / 100) * containerSize.height}
+        onDoubleClick={() => handleElementDoubleClick(element)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          deleteElement(presentationId, slide.id, element.id);
+        }}
+        aria-label={`${element.type} element`}
       >
-        <Box
-          sx={{
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-            border:
-              element.type === ELEMENT_TYPES.TEXT
-                ? '1px solid grey'
-                : element.type === ELEMENT_TYPES.VIDEO
-                ? '3px solid grey'
-                : 'none',
-            backgroundColor:
-              element.type === ELEMENT_TYPES.TEXT
-                ? 'white'
-                : element.type === ELEMENT_TYPES.VIDEO
-                ? 'grey'
-                : 'transparent',
-            padding: '5px',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            overflow: 'hidden',
-          }}
-          onDoubleClick={() => handleEditElement(element)}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            deleteElement(presentationId, slide.id, element.id);
-          }}
-          onClick={(e) => handleElementClick(e, element)}
-          aria-label={`${element.type} element`}
-          tabIndex={0}
-        >
-          {content}
-          {renderHandles(element)}
-        </Box>
+        {content}
+
+        {/* Render custom handles only for the selected element */}
+        {selectedElementId === element.id && (
+          <Box
+            sx={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              top: 0,
+              left: 0,
+              pointerEvents: 'none', // Allow clicks to pass through
+            }}
+          >
+
       </Rnd>
     );
   };
 
+  // Deselect element when clicking outside
+  const handleContainerClick = () => {
+    setSelectedElementId(null);
+  };
+
   return (
-    <Box onClick={handleContainerClick}>
+    <Box onClick={handleContainerClick} sx={{ userSelect: 'none' }}>
       {/* Controls to Add Elements */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <IconButton

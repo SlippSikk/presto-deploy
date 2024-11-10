@@ -2,7 +2,9 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Box } from '@mui/material';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+// Import languages you need
 import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
 import c from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
@@ -14,23 +16,29 @@ SyntaxHighlighter.registerLanguage('c', c);
 
 const CodeBlock = ({ code, language, fontSize }) => {
   return (
-    <div style={{ width: '100%', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden', // Prevent overflow in all directions
+        fontSize: `${fontSize}em`,
+        boxSizing: 'border-box',
+      }}
+    >
       <SyntaxHighlighter
         language={language}
         style={github}
         customStyle={{
-          fontSize: `${fontSize}em`,
-          whiteSpace: 'pre-wrap', // Allows code to wrap; use 'pre' to prevent wrapping
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-          display: '-webkit-box',
-          WebkitLineClamp: 10, // Limit to 10 lines; adjust as needed
-          WebkitBoxOrient: 'vertical',
+          margin: 0,
+          padding: '0.5em',
+          height: '100%',
+          overflow: 'hidden', // Allow scrolling if content exceeds
+          boxSizing: 'border-box',
         }}
       >
         {code}
       </SyntaxHighlighter>
-    </div>
+    </Box>
   );
 };
 
