@@ -163,68 +163,66 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     switch (element.type) {
       case ELEMENT_TYPES.TEXT:
         content = (
-          <TextBlock
-            content={element.content}
-            fontSize={element.fontSize}
-            color={element.color}
-          />
+          <Box
+            sx={{
+              border: '1px solid lightgrey', // Soft grey border for text
+              padding: '5px',
+              backgroundColor: 'white',
+              width: '100%',
+              height: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <TextBlock
+              content={element.content}
+              fontSize={element.fontSize}
+              color={element.color}
+            />
+          </Box>
         );
         break;
+  
       case ELEMENT_TYPES.IMAGE:
         content = <ImageBlock src={element.src} alt={element.alt} />;
         break;
+  
       case ELEMENT_TYPES.VIDEO:
         content = (
           <Box
-          sx={{
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-          }}
-          onDoubleClick={(e) => {
-            e.stopPropagation(); // Prevent interaction with the iframe
-            handleElementDoubleClick(element);
-          }}
-        >
+            sx={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+            }}
+          >
           {selectedElementId === element.id && (
-            <Box
+           <Box
               sx={{
                 position: 'absolute',
                 width: 'calc(100% + 10px)',
                 height: 'calc(100% + 10px)',
                 top: '-5px',
                 left: '-5px',
-                border: '2px solid grey',
                 zIndex: 1,
               }}
             />
-          )}
-
-          <VideoBlock src={element.src} autoPlay={element.autoPlay} />
-        </Box>
-        );
-        break;
-      case ELEMENT_TYPES.CODE:
-        content = (
-          <CodeBlock
-            code={element.code}
-            language={element.language}
-            fontSize={element.fontSize}
-          />
+            )}
+            <VideoBlock src={element.src} autoPlay={element.autoPlay} />
+          </Box>
         );
         break;
       default:
         return null;
     }
-
+  
     // Convert percentage sizes to pixels
     const widthInPixels = (element.size.width / 100) * containerSize.width;
     const heightInPixels = (element.size.height / 100) * containerSize.height;
-
+  
     // Convert percentage positions to pixels
     const xInPixels = (element.position.x / 100) * containerSize.width;
     const yInPixels = (element.position.y / 100) * containerSize.height;
-
+  
     return (
       <Rnd
         key={element.id}
@@ -248,17 +246,17 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           const newHeight = (ref.offsetHeight / containerSize.height) * 100;
           const newX = (position.x / containerSize.width) * 100;
           const newY = (position.y / containerSize.height) * 100;
-
+  
           // Enforce minimum size of 1%
           const finalWidth = Math.max(newWidth, 1);
           const finalHeight = Math.max(newHeight, 1);
-
+  
           // Enforce boundaries
           const maxWidth = 100 - newX;
           const maxHeight = 100 - newY;
           const finalWidthClamped = Math.min(finalWidth, maxWidth);
           const finalHeightClamped = Math.min(finalHeight, maxHeight);
-
+  
           handleUpdateElementPositionAndSize(element.id, { x: newX, y: newY }, { width: finalWidthClamped, height: finalHeightClamped });
         }}
         bounds="parent"
@@ -281,18 +279,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         }}
         style={{
           zIndex: element.layer,
-          border:
-            element.type === ELEMENT_TYPES.TEXT
-              ? '1px solid grey'
-              : element.type === ELEMENT_TYPES.VIDEO
-              ? '3px solid grey'
-              : 'none',
-          backgroundColor:
-            element.type === ELEMENT_TYPES.TEXT
-              ? 'white'
-              : element.type === ELEMENT_TYPES.VIDEO
-              ? 'grey'
-              : 'transparent',
+          border: selectedElementId === element.id ? '1px solid blue' : 'none', // Blue border for selected element
           padding: '5px',
           boxSizing: 'border-box',
           cursor: selectedElementId === element.id ? 'move' : 'pointer',
@@ -305,7 +292,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         aria-label={`${element.type} element`}
       >
         {content}
-
+  
         {/* Render custom handles only for the selected element */}
         {selectedElementId === element.id && (
           <Box
@@ -325,10 +312,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                // border: '1px solid white',
                 top: '-2.5px',
-                left: '-2.5px',
+                left: '-3px',
                 cursor: 'nwse-resize',
+                zIndex: 10,
               }}
             />
             <Box
@@ -337,10 +324,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                // border: '1px solid white',
                 top: '-2.5px',
                 right: '-2.5px',
                 cursor: 'nesw-resize',
+                zIndex: 10,
               }}
             />
             <Box
@@ -349,10 +336,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                // border: '1px solid white',
                 bottom: '-2.5px',
-                left: '-2.5px',
+                left: '-3px',
                 cursor: 'nesw-resize',
+                zIndex: 10,
               }}
             />
             <Box
@@ -361,10 +348,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 width: '5px',
                 height: '5px',
                 backgroundColor: 'blue',
-                // border: '1px solid white',
                 bottom: '-2.5px',
                 right: '-2.5px',
                 cursor: 'nwse-resize',
+                zIndex: 10,
               }}
             />
           </Box>
