@@ -252,7 +252,98 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         position={{
           x: xInPixels,
           y: yInPixels,
+        }}
+        onDragStart={() => setSelectedElementId(element.id)}
+        onDragStop={(e, d) => {
+          let newX = (d.x / containerSize.width) * 100;
+          let newY = (d.y / containerSize.height) * 100;
 
+          // Clamp within container
+          newX = Math.max(0, Math.min(newX, 100 - element.size.width));
+          newY = Math.max(0, Math.min(newY, 100 - element.size.height));
+
+          const updatedElements = elements.map((el) =>
+            el.id === element.id
+              ? {
+                  ...el,
+                  position: {
+                    x: newX,
+                    y: newY,
+                  },
+                }
+              : el
+          );
+
+          updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+        }}
+        onResizeStop={(e, direction, ref, delta, position) => {
+          let newWidth = (ref.offsetWidth / containerSize.width) * 100;
+          let newHeight = (ref.offsetHeight / containerSize.height) * 100;
+          let newX = (position.x / containerSize.width) * 100;
+          let newY = (position.y / containerSize.height) * 100;
+
+          // Enforce minimum size of 1%
+          newWidth = Math.max(newWidth, 1);
+          newHeight = Math.max(newHeight, 1);
+
+          // Enforce boundaries
+          if (newX + newWidth > 100) {
+            newWidth = 100 - newX;
+          }
+          if (newY + newHeight > 100) {
+            newHeight = 100 - newY;
+          }
+
+          const updatedElements = elements.map((el) =>
+            el.id === element.id
+              ? {
+                  ...el,
+                  size: {
+                    width: newWidth,
+                    height: newHeight,
+                  },
+                  position: {
+                    x: newX,
+                    y: newY,
+                  },
+                }
+              : el
+          );
+
+          updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+        }}
+        bounds="parent"
+        enableResizing={selectedElementId === element.id}
+        disableDragging={selectedElementId !== element.id}
+        dragHandleClassName="move-handle"
+        style={{
+          zIndex: element.layer,
+        }}
+        minWidth={(1 / 100) * containerSize.width}
+        minHeight={(1 / 100) * containerSize.height}
+      >
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            border:
+              element.type === ELEMENT_TYPES.TEXT
+                ? '1px solid grey'
+                : element.type === ELEMENT_TYPES.VIDEO
+                ? '3px solid grey'
+                : 'none',
+            backgroundColor:
+              element.type === ELEMENT_TYPES.TEXT
+                ? 'white'
+                : element.type === ELEMENT_TYPES.VIDEO
+                ? 'grey'
+                : 'transparent',
+            padding: '5px',
+            boxSizing: 'border-box',
+            cursor: 'pointer',
+            overflow: 'hidden',
+          }}
           onDoubleClick={() => handleEditElement(element)}
           onContextMenu={(e) => {
             e.preventDefault();
