@@ -1,60 +1,48 @@
 // src/components/elements/CodeBlock.jsx
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Box } from '@mui/material';
-import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
-// Import languages you need
-import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
-import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
-import c from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
+import { LightAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import highlight from 'highlight.js/lib/core';
 
-// Register the languages with SyntaxHighlighter
-SyntaxHighlighter.registerLanguage('javascript', javascript);
-SyntaxHighlighter.registerLanguage('python', python);
-SyntaxHighlighter.registerLanguage('c', c);
+// Import additional languages as needed
+import javascript from 'highlight.js/lib/languages/javascript';
+import python from 'highlight.js/lib/languages/python';
+import c from 'highlight.js/lib/languages/c';
+// Add more languages here
 
-// Helper function to detect language
-const detectLanguage = (code) => {
-  // Simple heuristics to determine the language
-  const cPattern = /#include\s*<.*?>|int\s+main\s*\(/;
-  const pythonPattern = /^\s*def\s+\w+\s*\(.*\):|import\s+\w+/m;
-  const jsPattern = /function\s+\w+\s*\(.*\)\s*{|console\.log\s*\(/;
+// Register languages with highlight.js
+highlight.registerLanguage('javascript', javascript);
+highlight.registerLanguage('python', python);
+highlight.registerLanguage('c', c);
+// Register additional languages here
 
-  if (cPattern.test(code)) {
-    return 'c';
-  } else if (pythonPattern.test(code)) {
-    return 'python';
-  } else if (jsPattern.test(code)) {
-    return 'javascript';
-  } else {
-    return 'plaintext'; // Fallback if none match
-  }
-};
 
-const CodeBlock = ({ code, fontSize }) => {
-  const language = detectLanguage(code);
 
   return (
     <Box
       sx={{
         width: '100%',
         height: '100%',
-        overflow: 'hidden', // Prevent overflow in all directions
+        overflow: 'auto', // Allow scrolling if content overflows
         fontSize: `${fontSize}em`,
         boxSizing: 'border-box',
+        backgroundColor: '#f6f8fa', // Optional: match the github theme background
+        overflow: 'hidden',
+
       }}
     >
       <SyntaxHighlighter
         language={language}
         style={github}
+        wrapLines
         customStyle={{
           margin: 0,
-          padding: '0.5em',
-          height: '100%',
-          overflow: 'hidden', // Ensure content is clipped
+          padding: '0.7em',
           boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
         {code}
@@ -65,7 +53,12 @@ const CodeBlock = ({ code, fontSize }) => {
 
 CodeBlock.propTypes = {
   code: PropTypes.string.isRequired,
-  fontSize: PropTypes.number.isRequired,
+  fontSize: PropTypes.number,
+};
+
+CodeBlock.defaultProps = {
+  fontSize: 1, // Default font size
+  language: null, // Default to auto-detection
 };
 
 export default CodeBlock;
