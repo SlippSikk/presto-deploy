@@ -19,7 +19,15 @@ highlight.registerLanguage('python', python);
 highlight.registerLanguage('c', c);
 // Register additional languages here
 
+const CodeBlock = ({ code, fontSize, language: explicitLanguage }) => {
+  const [language, setLanguage] = useState(explicitLanguage || 'plaintext');
 
+  useEffect(() => {
+    if (!explicitLanguage) {
+      const detectedLanguage = highlight.highlightAuto(code).language || 'plaintext';
+      setLanguage(detectedLanguage);
+    }
+  }, [code, explicitLanguage]);
 
   return (
     <Box
