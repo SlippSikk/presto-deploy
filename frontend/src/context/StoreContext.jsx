@@ -55,7 +55,7 @@ export const StoreProvider = ({ children }) => {
           setLoading(true);
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
-
+  
           // Ensure the store has presentations and each presentation has slides with elements and background
           const fetchedStore =
             response.data &&
@@ -70,9 +70,9 @@ export const StoreProvider = ({ children }) => {
                   })),
                 }
               : { presentations: [] };
-
+  
           console.log('Fetched Store:', fetchedStore); // Additional debugging
-
+  
           setStoreState(fetchedStore);
           setLoading(false);
         } catch (err) {
@@ -86,7 +86,7 @@ export const StoreProvider = ({ children }) => {
         setLoading(false);
       }
     };
-
+  
     fetchStore();
   }, [isAuthenticated]);
 
