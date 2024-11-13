@@ -1,12 +1,36 @@
 // src/components/PresentationPreview.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { Box, IconButton, Typography } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
+import { StoreContext } from '../context/StoreContext';
 
-const PresentationPreview = ({ presentation }) => {
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+const PresentationPreview = () => {
+  const { id } = useParams(); // Get the presentation ID from the URL
+  const { store, loading, error } = useContext(StoreContext); // Access the presentations from the store
+  const [presentation, setPresentation] = useState(null); // Store the current presentation
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Track the current slide
+
+  useEffect(() => {
+    if (store && store.presentations) {
+      const foundPresentation = store.presentations.find((p) => p.id === id);
+      setPresentation(foundPresentation);
+    }
+  }, [store, id]);
+
+  if (loading) {
+    return <Typography>Loading presentation preview...</Typography>;
+  }
+
+  if (error) {
+    return <Typography>Error loading presentation: {error}</Typography>;
+  }
+
+  if (!presentation) {
+    return <Typography>Presentation not found.</Typography>;
+  }
 
   const slides = presentation.slides;
 
@@ -22,29 +46,60 @@ const PresentationPreview = ({ presentation }) => {
     );
   };
 
+  useEffect(() => {
+    // Optional: Handle keyboard navigation
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') {
+        goToNextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        goToPreviousSlide();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlideIndex, slides.length]);
+
   return (
     <Box
       sx={{
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
-        backgroundColor: slides[currentSlideIndex]?.background?.color || '#ffffff',
+        backgroundColor:
+          slides[currentSlideIndex]?.background?.style === 'solid'
+            ? slides[currentSlideIndex].background.color
+            : '#ffffff', // Default to white if not solid
+        backgroundImage:
+          slides[currentSlideIndex]?.background?.style === 'gradient'
+            ? `linear-gradient(${slides[currentSlideIndex].background.gradient.direction}, ${slides[currentSlideIndex].background.gradient.colors.join(
+                ', '
+              )})`
+            : slides[currentSlideIndex]?.background?.style === 'image'
+            ? `url(${slides[currentSlideIndex].background.image})`
+            : 'none',
+        backgroundSize:
+          slides[currentSlideIndex]?.background?.style === 'image'
+            ? 'cover'
+            : 'auto',
+        backgroundRepeat:
+          slides[currentSlideIndex]?.background?.style === 'image'
+            ? 'no-repeat'
+            : 'repeat',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
       }}
+      aria-label="Presentation Preview"
     >
       {/* Slide Content */}
       <Box
         sx={{
           width: '90%',
           height: '80%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          position: 'relative', // For absolute positioning of elements
         }}
       >
         {slides[currentSlideIndex]?.elements.map((element) => (
@@ -64,7 +119,8 @@ const PresentationPreview = ({ presentation }) => {
                 style={{
                   fontSize: element.fontSize,
                   color: element.color,
-                  fontFamily: slides[currentSlideIndex]?.fontFamily || 'Arial',
+                  fontFamily:
+                    slides[currentSlideIndex]?.fontFamily || 'Arial',
                 }}
               >
                 {element.content}
@@ -122,6 +178,7 @@ const PresentationPreview = ({ presentation }) => {
           onClick={goToPreviousSlide}
           disabled={currentSlideIndex === 0}
           color="secondary"
+          aria-label="Previous Slide"
         >
           <ArrowBack />
         </IconButton>
@@ -132,6 +189,7 @@ const PresentationPreview = ({ presentation }) => {
           onClick={goToNextSlide}
           disabled={currentSlideIndex === slides.length - 1}
           color="secondary"
+          aria-label="Next Slide"
         >
           <ArrowForward />
         </IconButton>
@@ -141,15 +199,7 @@ const PresentationPreview = ({ presentation }) => {
 };
 
 PresentationPreview.propTypes = {
-  presentation: PropTypes.shape({
-    slides: PropTypes.arrayOf(
-      PropTypes.shape({
-        background: PropTypes.object,
-        elements: PropTypes.arrayOf(PropTypes.object),
-        fontFamily: PropTypes.string,
-      })
-    ).isRequired,
-  }).isRequired,
+  // No props needed as we're fetching data using useParams and context
 };
 
 export default PresentationPreview;

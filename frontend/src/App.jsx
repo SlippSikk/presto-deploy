@@ -4,7 +4,8 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
-import PresentationPage from './pages/PresentationPage'; // Import PresentationPage
+import PresentationPage from './pages/PresentationPage';
+import PresentationPreview from './components/PresentationPreview';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -55,7 +56,14 @@ const App = () => {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/presentation/:id/preview"
+          element={
+            <PrivateRoute>
+              <PresentationPreview />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </ThemeProvider>
   );
