@@ -155,10 +155,20 @@ export const StoreProvider = ({ children }) => {
    */
   const addSlide = async (presentationId, slide) => {
     const newSlide = {
-      ...slide,
-      fontFamily: 'Arial', // Default font family for the new slide
+      id: `slide-${Date.now()}`,
+      elements: [],
+      fontFamily: 'Arial',
+      background: {
+        style: 'solid',
+        color: '#ffffff',
+        gradient: {
+          direction: 'to right',
+          colors: ['#ff7e5f', '#feb47b'],
+        },
+        image: '',
+      },
     };
-
+  
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((p) =>
@@ -167,7 +177,7 @@ export const StoreProvider = ({ children }) => {
           : p
       ),
     };
-
+  
     await updateStoreData(updatedStore);
   };
 
