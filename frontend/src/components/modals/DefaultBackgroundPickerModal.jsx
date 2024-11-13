@@ -60,6 +60,132 @@ const DefaultBackgroundPickerModal = ({ open, onClose, presentationId }) => {
     }
   }, [presentation, open]);
 
+  /**
+   * Handler for changing the background style.
+   *
+   * @param {object} e - Event object.
+   */
+  const handleStyleChange = (e) => {
+    setBackgroundStyle(e.target.value);
+  };
+
+  /**
+   * Handler for changing the solid color.
+   *
+   * @param {object} color - Color object from SketchPicker.
+   */
+  const handleSolidColorChange = (color) => {
+    setSolidColor(color.hex);
+  };
+
+  /**
+   * Handler for changing the gradient direction.
+   *
+   * @param {object} e - Event object.
+   */
+  const handleGradientDirectionChange = (e) => {
+    setGradientDirection(e.target.value);
+  };
+
+  /**
+   * Handler for changing a gradient color.
+   *
+   * @param {number} index - Index of the color to change.
+   * @param {object} color - Color object from SketchPicker.
+   */
+  const handleGradientColorChange = (index, color) => {
+    const newColors = [...gradientColors];
+    newColors[index] = color.hex;
+    setGradientColors(newColors);
+  };
+
+  /**
+   * Handler to add a new gradient color.
+   */
+  const handleAddGradientColor = () => {
+    if (gradientColors.length < 5) { // Limit to 5 colors
+      setGradientColors([...gradientColors, '#000000']);
+    }
+  };
+
+  /**
+   * Handler to remove a gradient color.
+   *
+   * @param {number} index - Index of the color to remove.
+   */
+  const handleRemoveGradientColor = (index) => {
+    const newColors = gradientColors.filter((_, i) => i !== index);
+    setGradientColors(newColors);
+  };
+
+  /**
+   * Handler for changing the image URL.
+   *
+   * @param {object} e - Event object.
+   */
+  const handleImageURLChange = (e) => {
+    setImageURL(e.target.value);
+  };
+
+  /**
+   * Handler for image file upload.
+   *
+   * @param {object} e - Event object.
+   */
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Ensure it's an image
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+
+      // Convert to Base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result.toString());
+        setImageURL(''); // Clear URL if an image is uploaded
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  /**
+   * Handler for submitting the default background changes.
+   */
+  const handleSubmit = async () => {
+    const updatedBackground = { style: backgroundStyle };
+
+    if (backgroundStyle === 'solid') {
+      updatedBackground.color = solidColor;
+      updatedBackground.gradient = undefined;
+      updatedBackground.image = undefined;
+      updatedBackground.uploadedImage = undefined;
+    } else if (backgroundStyle === 'gradient') {
+      updatedBackground.gradient = {
+        direction: gradientDirection,
+        colors: gradientColors,
+      };
+      updatedBackground.color = undefined;
+      updatedBackground.image = undefined;
+      updatedBackground.uploadedImage = undefined;
+    } else if (backgroundStyle === 'image') {
+      if (uploadedImage) {
+        updatedBackground.image = uploadedImage; // Use uploaded image
+        updatedBackground.uploadedImage = uploadedImage; // Store for future reference
+      } else {
+        updatedBackground.image = imageURL;
+        updatedBackground.uploadedImage = ''; // Clear if using URL
+      }
+      updatedBackground.color = undefined;
+      updatedBackground.gradient = undefined;
+    }
+
+    await updateDefaultBackground(presentationId, updatedBackground);
+    onClose();
+  };
+
   return (
     <Dialog open={open} onClose={onClose} aria-labelledby="default-background-picker-dialog-title" fullWidth maxWidth="sm">
       <DialogTitle id="default-background-picker-dialog-title">Set Default Presentation Background</DialogTitle>
