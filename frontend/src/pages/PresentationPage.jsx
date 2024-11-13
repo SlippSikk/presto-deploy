@@ -1,3 +1,5 @@
+// src/pages/PresentationPage.jsx
+
 import React, { useState, useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -54,7 +56,7 @@ const PresentationPage = () => {
   const currentSlide =
     Array.isArray(presentation.slides) && presentation.slides.length > 0
       ? presentation.slides[currentSlideIndex] || presentation.slides[0]
-      : { id: `slide-${Date.now()}`, elements: [] };
+      : { id: `slide-${Date.now()}`, elements: [], fontFamily: 'Arial' }; // Ensure fontFamily is present
 
   const handleDeletePresentation = async () => {
     try {
@@ -108,6 +110,7 @@ const PresentationPage = () => {
     const newSlide = {
       id: `slide-${Date.now()}`,
       elements: [],
+      fontFamily: 'Arial', // Ensure new slides have a default fontFamily
     };
     try {
       await addSlide(id, newSlide);

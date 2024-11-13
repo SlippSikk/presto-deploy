@@ -191,7 +191,7 @@ export const StoreProvider = ({ children }) => {
         };
       }),
     };
-
+  
     await updateStoreData(updatedStore);
   };
 

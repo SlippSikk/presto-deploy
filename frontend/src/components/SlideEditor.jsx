@@ -2,7 +2,16 @@
 
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Box, IconButton, Typography, Stack } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Typography,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
@@ -20,6 +29,9 @@ import EditImageModal from './modals/EditImageModal';
 import EditVideoModal from './modals/EditVideoModal';
 import EditCodeModal from './modals/EditCodeModal';
 
+// Define available font families
+const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia'];
+
 const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for adding new elements
   const [openTextModal, setOpenTextModal] = useState(false);
@@ -34,17 +46,27 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for selected element (for showing resize/move handles)
   const [selectedElementId, setSelectedElementId] = useState(null);
 
-  // const { deleteElement } = useContext(StoreContext);
+  // **New State for Font Selection**
+  const [selectedFont, setSelectedFont] = useState(slide.fontFamily || 'Arial');
 
-  // State for Font Picker Modal
-  const [openFontPicker, setOpenFontPicker] = useState(false);
-
-  const { deleteElement, updatePresentation, store } = useContext(StoreContext);
+  const { deleteElement } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
   useEffect(() => {
     console.log('Slide prop:', slide);
   }, [slide]);
+
+  // **Effect to update selectedFont when slide changes**
+  useEffect(() => {
+    setSelectedFont(slide.fontFamily || 'Arial');
+  }, [slide]);
+
+  // Handler for font change
+  const handleFontChange = (e) => {
+    const newFont = e.target.value;
+    setSelectedFont(newFont);
+    updateSlide(presentationId, slide.id, { ...slide, fontFamily: newFont });
+  };
 
   // Defensive check: Ensure slide is defined
   if (!slide) {
@@ -112,7 +134,9 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const handleUpdateElement = (updatedElement) => {
     updateSlide(presentationId, slide.id, {
       ...slide,
-      elements: slide.elements.map((el) => (el.id === updatedElement.id ? updatedElement : el)),
+      elements: slide.elements.map((el) =>
+        el.id === updatedElement.id ? updatedElement : el
+      ),
     });
     setOpenEditModal(false);
     setEditingElement(null);
@@ -182,15 +206,16 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
               content={element.content}
               fontSize={element.fontSize}
               color={element.color}
+              fontFamily={slide.fontFamily || 'Arial'} // **Pass fontFamily to TextBlock**
             />
           </Box>
         );
         break;
-  
+
       case ELEMENT_TYPES.IMAGE:
         content = <ImageBlock src={element.src} alt={element.alt} />;
         break;
-  
+
       case ELEMENT_TYPES.VIDEO:
         content = (
           <Box
@@ -200,52 +225,52 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
               height: '100%',
             }}
           >
-          {selectedElementId === element.id && (
-           <Box
-              sx={{
-                position: 'absolute',
-                width: 'calc(100% + 10px)',
-                height: 'calc(100% + 10px)',
-                top: '-5px',
-                left: '-5px',
-                zIndex: 1,
-              }}
-            />
+            {selectedElementId === element.id && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  width: 'calc(100% + 10px)',
+                  height: 'calc(100% + 10px)',
+                  top: '-5px',
+                  left: '-5px',
+                  zIndex: 1,
+                }}
+              />
             )}
             <VideoBlock src={element.src} autoPlay={element.autoPlay} />
           </Box>
         );
         break;
 
-        case ELEMENT_TYPES.CODE:
-          content = (
-            <Box
-              sx={{
-                border: '1px solid lightgrey',
-                padding: '10px',
-                backgroundColor: '#f5f5f5', // Light grey background for code blocks
-                fontFamily: 'monospace', // Use monospace font for code
-                width: '100%',
-                height: '100%',
-                boxSizing: 'border-box',
-              }}
-            >
-              <CodeBlock code={element.code} language={element.language} />
-            </Box>
-          );
+      case ELEMENT_TYPES.CODE:
+        content = (
+          <Box
+            sx={{
+              border: '1px solid lightgrey',
+              padding: '10px',
+              backgroundColor: '#f5f5f5', // Light grey background for code blocks
+              fontFamily: 'monospace', // Use monospace font for code
+              width: '100%',
+              height: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <CodeBlock code={element.code} language={element.language} />
+          </Box>
+        );
         break;
       default:
         return null;
     }
-  
+
     // Convert percentage sizes to pixels
     const widthInPixels = (element.size.width / 100) * containerSize.width;
     const heightInPixels = (element.size.height / 100) * containerSize.height;
-  
+
     // Convert percentage positions to pixels
     const xInPixels = (element.position.x / 100) * containerSize.width;
     const yInPixels = (element.position.y / 100) * containerSize.height;
-  
+
     return (
       <Rnd
         key={element.id}
@@ -269,18 +294,22 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           const newHeight = (ref.offsetHeight / containerSize.height) * 100;
           const newX = (position.x / containerSize.width) * 100;
           const newY = (position.y / containerSize.height) * 100;
-  
+
           // Enforce minimum size of 1%
           const finalWidth = Math.max(newWidth, 1);
           const finalHeight = Math.max(newHeight, 1);
-  
+
           // Enforce boundaries
           const maxWidth = 100 - newX;
           const maxHeight = 100 - newY;
           const finalWidthClamped = Math.min(finalWidth, maxWidth);
           const finalHeightClamped = Math.min(finalHeight, maxHeight);
-  
-          handleUpdateElementPositionAndSize(element.id, { x: newX, y: newY }, { width: finalWidthClamped, height: finalHeightClamped });
+
+          handleUpdateElementPositionAndSize(
+            element.id,
+            { x: newX, y: newY },
+            { width: finalWidthClamped, height: finalHeightClamped }
+          );
         }}
         bounds="parent"
         minWidth={(1 / 100) * containerSize.width} // 1% of container width
@@ -315,7 +344,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         aria-label={`${element.type} element`}
       >
         {content}
-  
+
         {/* Render custom handles only for the selected element */}
         {selectedElementId === element.id && (
           <Box
@@ -390,7 +419,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
   return (
     <Box onClick={handleContainerClick} sx={{ userSelect: 'none' }}>
-      {/* Controls to Add Elements */}
+      {/* **Updated: Controls to Add Elements + Font Dropdown** */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <IconButton
           color="primary"
@@ -424,6 +453,25 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           <Add />
           <Typography variant="caption">Code</Typography>
         </IconButton>
+
+        {/* **New: Font Family Dropdown** */}
+        <FormControl sx={{ minWidth: 150 }} size="small">
+          <InputLabel id="font-family-select-label">Font</InputLabel>
+          <Select
+            labelId="font-family-select-label"
+            id="font-family-select"
+            value={selectedFont}
+            label="Font"
+            onChange={handleFontChange}
+            aria-label="Font Family Selector"
+          >
+            {FONT_FAMILIES.map((font) => (
+              <MenuItem key={font} value={font}>
+                <Typography style={{ fontFamily: font }}>{font}</Typography>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
 
       {/* Slide Container */}
@@ -484,7 +532,8 @@ SlideEditor.propTypes = {
   presentationId: PropTypes.string.isRequired,
   slide: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    elements: PropTypes.arrayOf(PropTypes.object),
+    elements: PropTypes.arrayOf(PropTypes.object).isRequired,
+    fontFamily: PropTypes.string,
   }).isRequired,
   updateSlide: PropTypes.func.isRequired,
 };
