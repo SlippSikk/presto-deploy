@@ -12,7 +12,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Add, Brush, PlayArrow } from '@mui/icons-material'; // Added PlayArrow icon
+import { Add, Brush } from '@mui/icons-material'; // Added Brush icon
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
 import TextBlock from './elements/TextBlock';
@@ -30,7 +30,6 @@ import EditVideoModal from './modals/EditVideoModal';
 import EditCodeModal from './modals/EditCodeModal';
 import BackgroundPickerModal from './modals/BackgroundPickerModal'; // Import the existing modal
 import DefaultBackgroundPickerModal from './modals/DefaultBackgroundPickerModal'; // Import the new modal
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // Define available font families
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia'];
@@ -58,9 +57,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
   // Destructure required functions from StoreContext
   const { deleteElement, store, updateDefaultBackground } = useContext(StoreContext);
-
-  // Initialize useNavigate
-  const navigate = useNavigate();
 
   // Debugging: Log the slide prop
   useEffect(() => {
@@ -134,10 +130,24 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
-  // **Updated openPreview Function Using React Router**
   const openPreview = () => {
-    navigate(`/presentation/${presentationId}/preview`, { target: '_blank' });
-    window.open(`/presentation/${presentationId}/preview`, '_blank');
+    const previewWindow = window.open('', '_blank');
+    previewWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Presentation Preview</title>
+          <script src="/path-to-bundle.js" defer></script>
+        </head>
+        <body>
+          <div id="root"></div>
+        </body>
+      </html>
+    `);
+  
+    // Assuming you use ReactDOM.render() to mount the component
+    const previewRoot = previewWindow.document.getElementById('root');
+    ReactDOM.render(<PresentationPreview presentation={store.presentation} />, previewRoot);
   };
 
   const handleUpdateElementPositionAndSize = (id, position, size) => {
@@ -435,6 +445,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         )}
       </Rnd>
     );
+
   };
 
   // Deselect element when clicking outside
@@ -457,76 +468,76 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         </IconButton>
 
         {/* Element Addition Buttons and Font Dropdown */}
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }} // Stack vertically on extra-small screens
-          spacing={2}
-          alignItems="center"
-          sx={{ width: '100%' }}
-          justifyContent="space-between" // Pushes the preview button to the right
-          flexWrap="wrap" // Allows wrapping on smaller screens
-        >
-          <Stack direction="row" spacing={2} alignItems="center">
-            <IconButton
-              color="primary"
-              onClick={() => setOpenTextModal(true)}
-              aria-label="Add Text"
-            >
-              <Add />
-              <Typography variant="caption">Text</Typography>
-            </IconButton>
-            <IconButton
-              color="primary"
-              onClick={() => setOpenImageModal(true)}
-              aria-label="Add Image"
-            >
-              <Add />
-              <Typography variant="caption">Image</Typography>
-            </IconButton>
-            <IconButton
-              color="primary"
-              onClick={() => setOpenVideoModal(true)}
-              aria-label="Add Video"
-            >
-              <Add />
-              <Typography variant="caption">Video</Typography>
-            </IconButton>
-            <IconButton
-              color="primary"
-              onClick={() => setOpenCodeModal(true)}
-              aria-label="Add Code"
-            >
-              <Add />
-              <Typography variant="caption">Code</Typography>
-            </IconButton>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <IconButton
+            color="primary"
+            onClick={() => setOpenTextModal(true)}
+            aria-label="Add Text"
+          >
+            <Add />
+            <Typography variant="caption">Text</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            onClick={() => setOpenImageModal(true)}
+            aria-label="Add Image"
+          >
+            <Add />
+            <Typography variant="caption">Image</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            onClick={() => setOpenVideoModal(true)}
+            aria-label="Add Video"
+          >
+            <Add />
+            <Typography variant="caption">Video</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            onClick={() => setOpenCodeModal(true)}
+            aria-label="Add Code"
+          >
+            <Add />
+            <Typography variant="caption">Code</Typography>
+          </IconButton>
 
-            {/* Font Family Dropdown */}
-            <FormControl sx={{ minWidth: 150 }} size="small">
-              <InputLabel id="font-family-select-label">Font</InputLabel>
-              <Select
-                labelId="font-family-select-label"
-                id="font-family-select"
-                value={selectedFont}
-                label="Font"
-                onChange={handleFontChange}
-                aria-label="Font Family Selector"
-              >
-                {FONT_FAMILIES.map((font) => (
-                  <MenuItem key={font} value={font}>
-                    <Typography style={{ fontFamily: font }}>{font}</Typography>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
+          {/* Font Family Dropdown */}
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel id="font-family-select-label">Font</InputLabel>
+            <Select
+              labelId="font-family-select-label"
+              id="font-family-select"
+              value={selectedFont}
+              label="Font"
+              onChange={handleFontChange}
+              aria-label="Font Family Selector"
+            >
+              {FONT_FAMILIES.map((font) => (
+                <MenuItem key={font} value={font}>
+                  <Typography style={{ fontFamily: font }}>{font}</Typography>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Current Slide Background Picker Button */}
+          <IconButton
+            color="secondary"
+            onClick={() => setOpenBackgroundModal(true)}
+            aria-label="Set Current Slide Background"
+          >
+            <Brush />
+            <Typography variant="caption">Current Slide Background</Typography>
+          </IconButton>
 
           {/* Preview Presentation */}
           <IconButton
             color="primary"
             onClick={() => openPreview()}
             aria-label="Preview Presentation"
-            size="large"
           >
-            <PlayArrow fontSize="large" />
+            <Typography variant="caption">Preview</Typography>
           </IconButton>
         </Stack>
       </Stack>
@@ -539,20 +550,15 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           height: '60vh',
           border: '1px solid #ccc',
           margin: '0 auto',
-          backgroundColor:
-            slide.background?.style === 'solid' ? slide.background.color : '#ffffff', // Default to white if not solid
+          backgroundColor: slide.background?.style === 'solid' ? slide.background.color : '#ffffff', // Default to white if not solid
           backgroundImage:
             slide.background?.style === 'gradient'
-              ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(
-                  ', '
-                )})`
+              ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(', ')})`
               : slide.background?.style === 'image'
               ? `url(${slide.background.image})`
               : 'none',
-          backgroundSize:
-            slide.background?.style === 'image' ? 'cover' : 'auto',
-          backgroundRepeat:
-            slide.background?.style === 'image' ? 'no-repeat' : 'repeat',
+          backgroundSize: slide.background?.style === 'image' ? 'cover' : 'auto',
+          backgroundRepeat: slide.background?.style === 'image' ? 'no-repeat' : 'repeat',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -609,8 +615,8 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
       {/* Edit Element Modal */}
       {getEditModal()}
-    </Box>
-  ); // Properly close the main <Box> component
+    </Box> // Properly close the main <Box> component
+  );
 };
 
 SlideEditor.propTypes = {

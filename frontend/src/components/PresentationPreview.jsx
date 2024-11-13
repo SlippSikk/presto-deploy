@@ -1,19 +1,16 @@
-// src/components/PresentationPreview.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { Box, IconButton, Typography } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 
 const PresentationPreview = () => {
-  const { id } = useParams(); // Get the presentation ID from the URL
-  const { store, loading, error } = useContext(StoreContext); // Access the presentations from the store
-  const [presentation, setPresentation] = useState(null); // Store the current presentation
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Track the current slide
+  const { id } = useParams(); // Hook 1
+  const { store, loading, error } = useContext(StoreContext); // Hook 2
+  const [presentation, setPresentation] = useState(null); // Hook 3
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0); // Hook 4
 
-  useEffect(() => {
+  useEffect(() => { // Hook 5
     if (store && store.presentations) {
       const foundPresentation = store.presentations.find((p) => p.id === id);
       setPresentation(foundPresentation);
@@ -46,8 +43,7 @@ const PresentationPreview = () => {
     );
   };
 
-  useEffect(() => {
-    // Optional: Handle keyboard navigation
+  useEffect(() => { // Hook 6
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowRight') {
         goToNextSlide();
@@ -66,31 +62,7 @@ const PresentationPreview = () => {
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
-        backgroundColor:
-          slides[currentSlideIndex]?.background?.style === 'solid'
-            ? slides[currentSlideIndex].background.color
-            : '#ffffff', // Default to white if not solid
-        backgroundImage:
-          slides[currentSlideIndex]?.background?.style === 'gradient'
-            ? `linear-gradient(${slides[currentSlideIndex].background.gradient.direction}, ${slides[currentSlideIndex].background.gradient.colors.join(
-                ', '
-              )})`
-            : slides[currentSlideIndex]?.background?.style === 'image'
-            ? `url(${slides[currentSlideIndex].background.image})`
-            : 'none',
-        backgroundSize:
-          slides[currentSlideIndex]?.background?.style === 'image'
-            ? 'cover'
-            : 'auto',
-        backgroundRepeat:
-          slides[currentSlideIndex]?.background?.style === 'image'
-            ? 'no-repeat'
-            : 'repeat',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
+        // ... [styles]
       }}
       aria-label="Presentation Preview"
     >
@@ -99,107 +71,28 @@ const PresentationPreview = () => {
         sx={{
           width: '90%',
           height: '80%',
-          position: 'relative', // For absolute positioning of elements
+          position: 'relative',
         }}
       >
         {slides[currentSlideIndex]?.elements.map((element) => (
-          <Box
-            key={element.id}
-            sx={{
-              position: 'absolute',
-              top: `${element.position.y}%`,
-              left: `${element.position.x}%`,
-              width: `${element.size.width}%`,
-              height: `${element.size.height}%`,
-              zIndex: element.layer,
-            }}
-          >
-            {element.type === 'text' && (
-              <Typography
-                style={{
-                  fontSize: element.fontSize,
-                  color: element.color,
-                  fontFamily:
-                    slides[currentSlideIndex]?.fontFamily || 'Arial',
-                }}
-              >
-                {element.content}
-              </Typography>
-            )}
-            {element.type === 'image' && (
-              <img
-                src={element.src}
-                alt={element.alt}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-              />
-            )}
-            {element.type === 'video' && (
-              <video
-                src={element.src}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                }}
-                controls
-                autoPlay
-              />
-            )}
-            {element.type === 'code' && (
-              <Box
-                sx={{
-                  fontFamily: 'monospace',
-                  padding: '10px',
-                  backgroundColor: '#f5f5f5',
-                }}
-              >
-                {element.code}
-              </Box>
-            )}
+          <Box key={element.id} sx={{ /* styles */ }}>
+            {/* Render elements based on type */}
           </Box>
         ))}
       </Box>
 
       {/* Navigation Controls */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '10%',
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '0 20px',
-        }}
-      >
-        <IconButton
-          onClick={goToPreviousSlide}
-          disabled={currentSlideIndex === 0}
-          color="secondary"
-          aria-label="Previous Slide"
-        >
+      <Box sx={{ /* styles */ }}>
+        <IconButton onClick={goToPreviousSlide} disabled={currentSlideIndex === 0}>
           <ArrowBack />
         </IconButton>
-        <Typography variant="h6" sx={{ alignSelf: 'center' }}>
-          {`${currentSlideIndex + 1} / ${slides.length}`}
-        </Typography>
-        <IconButton
-          onClick={goToNextSlide}
-          disabled={currentSlideIndex === slides.length - 1}
-          color="secondary"
-          aria-label="Next Slide"
-        >
+        <Typography>{`${currentSlideIndex + 1} / ${slides.length}`}</Typography>
+        <IconButton onClick={goToNextSlide} disabled={currentSlideIndex === slides.length - 1}>
           <ArrowForward />
         </IconButton>
       </Box>
     </Box>
   );
-};
-
-PresentationPreview.propTypes = {
-  // No props needed as we're fetching data using useParams and context
 };
 
 export default PresentationPreview;
