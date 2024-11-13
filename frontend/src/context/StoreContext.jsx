@@ -98,6 +98,7 @@ export const StoreProvider = ({ children }) => {
     const initialSlide = {
       id: `slide-${Date.now()}`, // Unique ID for the slide
       elements: [], // Initialize with no elements
+      fontFamily: 'Arial', // Default font family for the slide
     };
 
     // Add the initial slide and default thumbnail to the presentation's slides array
@@ -153,14 +154,44 @@ export const StoreProvider = ({ children }) => {
    * @param {object} slide - The slide object to add.
    */
   const addSlide = async (presentationId, slide) => {
+    const newSlide = {
+      ...slide,
+      fontFamily: 'Arial', // Default font family for the new slide
+    };
+
     const updatedStore = {
       ...store,
-      presentations: store.presentations.map((presentation) =>
-        presentation.id === presentationId
-          ? { ...presentation, slides: [...presentation.slides, slide] }
-          : presentation
+      presentations: store.presentations.map((p) =>
+        p.id === presentationId
+          ? { ...p, slides: [...p.slides, newSlide] }
+          : p
       ),
     };
+
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+  * Updates the font family of a specific slide.
+  *
+  * @param {string} presentationId - The ID of the presentation.
+  * @param {string} slideId - The ID of the slide to update.
+  * @param {string} newFontFamily - The new font family to set.
+  */
+  const updateSlideFontFamily = async (presentationId, slideId, newFontFamily) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((p) => {
+        if (p.id !== presentationId) return p;
+        return {
+          ...p,
+          slides: p.slides.map((s) =>
+            s.id === slideId ? { ...s, fontFamily: newFontFamily } : s
+          ),
+        };
+      }),
+    };
+
     await updateStoreData(updatedStore);
   };
 
@@ -318,6 +349,7 @@ export const StoreProvider = ({ children }) => {
         addElement,
         updateElement,
         deleteElement,
+        updateSlideFontFamily,
         setStoreState,
       }}
     >

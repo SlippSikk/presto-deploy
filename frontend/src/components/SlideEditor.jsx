@@ -34,7 +34,12 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for selected element (for showing resize/move handles)
   const [selectedElementId, setSelectedElementId] = useState(null);
 
-  const { deleteElement } = useContext(StoreContext);
+  // const { deleteElement } = useContext(StoreContext);
+
+  // State for Font Picker Modal
+  const [openFontPicker, setOpenFontPicker] = useState(false);
+
+  const { deleteElement, updatePresentation, store } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
   useEffect(() => {

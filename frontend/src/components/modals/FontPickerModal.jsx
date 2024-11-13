@@ -12,6 +12,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Typography,
 } from '@mui/material';
 
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New'];
@@ -29,8 +30,8 @@ const FontPickerModal = ({ open, onClose, currentFont, onUpdate }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Select Font Family</DialogTitle>
+    <Dialog open={open} onClose={onClose} aria-labelledby="font-picker-dialog-title">
+      <DialogTitle id="font-picker-dialog-title">Select Font Family</DialogTitle>
       <DialogContent>
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel id="font-family-label">Font Family</InputLabel>
@@ -39,18 +40,19 @@ const FontPickerModal = ({ open, onClose, currentFont, onUpdate }) => {
             value={selectedFont}
             label="Font Family"
             onChange={handleChange}
+            aria-label="Font Family Selector"
           >
             {FONT_FAMILIES.map((font) => (
               <MenuItem key={font} value={font}>
-                {font}
+                <Typography style={{ fontFamily: font }}>{font}</Typography>
               </MenuItem>
             ))}
           </Select>
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
+        <Button onClick={onClose} aria-label="Cancel Font Selection">Cancel</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary" aria-label="Save Font Selection">
           Save
         </Button>
       </DialogActions>
