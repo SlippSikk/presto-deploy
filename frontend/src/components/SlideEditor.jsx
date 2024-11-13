@@ -12,7 +12,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Add, Brush } from '@mui/icons-material'; // Added Brush icon
+import { Add, Brush, PlayArrow } from '@mui/icons-material'; // Added PlayArrow icon
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
 import TextBlock from './elements/TextBlock';
@@ -48,10 +48,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for selected element (for showing resize/move handles)
   const [selectedElementId, setSelectedElementId] = useState(null);
 
-  // **New State for Font Selection**
+  // **State for Font Selection**
   const [selectedFont, setSelectedFont] = useState(slide.fontFamily || 'Arial');
 
-  // **New States for Background Pickers**
+  // **States for Background Pickers**
   const [openBackgroundModal, setOpenBackgroundModal] = useState(false);
   const [openDefaultBackgroundModal, setOpenDefaultBackgroundModal] = useState(false); // State for default background modal
 
@@ -84,15 +84,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   const handleDefaultBackgroundUpdate = (newBackground) => {
     updateDefaultBackground(presentationId, newBackground);
   };
-
-  // Defensive check: Ensure slide is defined
-  if (!slide) {
-    return (
-      <Box>
-        <Typography variant="h6">Slide data is unavailable.</Typography>
-      </Box>
-    );
-  }
 
   // Ensure elements is an array
   const elements = Array.isArray(slide.elements) ? slide.elements : [];
@@ -130,24 +121,9 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
   };
 
+  // **Updated openPreview Function Using window.open**
   const openPreview = () => {
-    const previewWindow = window.open('', '_blank');
-    previewWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <title>Presentation Preview</title>
-          <script src="/path-to-bundle.js" defer></script>
-        </head>
-        <body>
-          <div id="root"></div>
-        </body>
-      </html>
-    `);
-  
-    // Assuming you use ReactDOM.render() to mount the component
-    const previewRoot = previewWindow.document.getElementById('root');
-    ReactDOM.render(<PresentationPreview presentation={store.presentation} />, previewRoot);
+    window.open(`/presentation/${presentationId}/preview`, '_blank');
   };
 
   const handleUpdateElementPositionAndSize = (id, position, size) => {
@@ -455,7 +431,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
   return (
     <Box onClick={handleContainerClick} sx={{ userSelect: 'none' }}>
-      {/* Controls: Default Background Button, Element Addition Buttons, Font Dropdown */}
+      {/* Controls: Default Background Button, Element Addition Buttons, Font Dropdown, Current Slide Background, Preview */}
       <Stack direction="column" spacing={2} sx={{ mb: 2 }} alignItems="flex-start">
         {/* Default Background Button */}
         <IconButton
@@ -467,77 +443,92 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           <Typography variant="caption">Default Background</Typography>
         </IconButton>
 
-        {/* Element Addition Buttons and Font Dropdown */}
-        <Stack direction="row" spacing={2} alignItems="center">
-          <IconButton
-            color="primary"
-            onClick={() => setOpenTextModal(true)}
-            aria-label="Add Text"
-          >
-            <Add />
-            <Typography variant="caption">Text</Typography>
-          </IconButton>
-          <IconButton
-            color="primary"
-            onClick={() => setOpenImageModal(true)}
-            aria-label="Add Image"
-          >
-            <Add />
-            <Typography variant="caption">Image</Typography>
-          </IconButton>
-          <IconButton
-            color="primary"
-            onClick={() => setOpenVideoModal(true)}
-            aria-label="Add Video"
-          >
-            <Add />
-            <Typography variant="caption">Video</Typography>
-          </IconButton>
-          <IconButton
-            color="primary"
-            onClick={() => setOpenCodeModal(true)}
-            aria-label="Add Code"
-          >
-            <Add />
-            <Typography variant="caption">Code</Typography>
-          </IconButton>
-
-          {/* Font Family Dropdown */}
-          <FormControl sx={{ minWidth: 150 }} size="small">
-            <InputLabel id="font-family-select-label">Font</InputLabel>
-            <Select
-              labelId="font-family-select-label"
-              id="font-family-select"
-              value={selectedFont}
-              label="Font"
-              onChange={handleFontChange}
-              aria-label="Font Family Selector"
+        {/* Element Addition Buttons, Font Dropdown, Current Slide Background Picker, and Preview Button */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }} // Stack vertically on extra-small screens, horizontally on small and above
+          spacing={2}
+          alignItems="center"
+          sx={{ width: '100%' }}
+          justifyContent="space-between" // Pushes the Preview button to the right
+          flexWrap="wrap" // Allows wrapping on smaller screens
+        >
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+            {/* Add Text Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenTextModal(true)}
+              aria-label="Add Text"
             >
-              {FONT_FAMILIES.map((font) => (
-                <MenuItem key={font} value={font}>
-                  <Typography style={{ fontFamily: font }}>{font}</Typography>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <Add />
+              <Typography variant="caption">Text</Typography>
+            </IconButton>
+            {/* Add Image Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenImageModal(true)}
+              aria-label="Add Image"
+            >
+              <Add />
+              <Typography variant="caption">Image</Typography>
+            </IconButton>
+            {/* Add Video Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenVideoModal(true)}
+              aria-label="Add Video"
+            >
+              <Add />
+              <Typography variant="caption">Video</Typography>
+            </IconButton>
+            {/* Add Code Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenCodeModal(true)}
+              aria-label="Add Code"
+            >
+              <Add />
+              <Typography variant="caption">Code</Typography>
+            </IconButton>
 
-          {/* Current Slide Background Picker Button */}
-          <IconButton
-            color="secondary"
-            onClick={() => setOpenBackgroundModal(true)}
-            aria-label="Set Current Slide Background"
-          >
-            <Brush />
-            <Typography variant="caption">Current Slide Background</Typography>
-          </IconButton>
+            {/* Font Family Dropdown */}
+            <FormControl sx={{ minWidth: 150 }} size="small">
+              <InputLabel id="font-family-select-label">Font</InputLabel>
+              <Select
+                labelId="font-family-select-label"
+                id="font-family-select"
+                value={selectedFont}
+                label="Font"
+                onChange={handleFontChange}
+                aria-label="Font Family Selector"
+              >
+                {FONT_FAMILIES.map((font) => (
+                  <MenuItem key={font} value={font}>
+                    <Typography style={{ fontFamily: font }}>{font}</Typography>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          {/* Preview Presentation */}
+            {/* Current Slide Background Picker Button */}
+            <IconButton
+              color="secondary"
+              onClick={() => setOpenBackgroundModal(true)}
+              aria-label="Set Current Slide Background"
+            >
+              <Brush />
+              <Typography variant="caption">Current Slide Background</Typography>
+            </IconButton>
+          </Stack>
+
+          {/* Preview Presentation Button */}
           <IconButton
             color="primary"
-            onClick={() => openPreview()}
+            onClick={openPreview}
             aria-label="Preview Presentation"
+            size="large"
+            sx={{ marginTop: { xs: 1, sm: 0 } }} // Adds top margin on extra-small screens
           >
-            <Typography variant="caption">Preview</Typography>
+            <PlayArrow fontSize="large" />
           </IconButton>
         </Stack>
       </Stack>
@@ -550,10 +541,13 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           height: '60vh',
           border: '1px solid #ccc',
           margin: '0 auto',
-          backgroundColor: slide.background?.style === 'solid' ? slide.background.color : '#ffffff', // Default to white if not solid
+          backgroundColor:
+            slide.background?.style === 'solid' ? slide.background.color : '#ffffff', // Default to white if not solid
           backgroundImage:
             slide.background?.style === 'gradient'
-              ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(', ')})`
+              ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(
+                  ', '
+                )})`
               : slide.background?.style === 'image'
               ? `url(${slide.background.image})`
               : 'none',
