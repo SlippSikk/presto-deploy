@@ -28,7 +28,8 @@ import EditTextModal from './modals/EditTextModal';
 import EditImageModal from './modals/EditImageModal';
 import EditVideoModal from './modals/EditVideoModal';
 import EditCodeModal from './modals/EditCodeModal';
-import BackgroundPickerModal from './modals/BackgroundPickerModal'; // Import the new modal
+import BackgroundPickerModal from './modals/BackgroundPickerModal'; // Import the existing modal
+import DefaultBackgroundPickerModal from './modals/DefaultBackgroundPickerModal'; // Import the new modal
 
 // Define available font families
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia'];
@@ -50,10 +51,12 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // **New State for Font Selection**
   const [selectedFont, setSelectedFont] = useState(slide.fontFamily || 'Arial');
 
-  // **New State for Background Picker Modal**
+  // **New States for Background Pickers**
   const [openBackgroundModal, setOpenBackgroundModal] = useState(false);
+  const [openDefaultBackgroundModal, setOpenDefaultBackgroundModal] = useState(false); // State for default background modal
 
-  const { deleteElement } = useContext(StoreContext);
+  // Destructure required functions from StoreContext
+  const { deleteElement, store, updateDefaultBackground } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
   useEffect(() => {
@@ -72,9 +75,14 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     updateSlide(presentationId, slide.id, { ...slide, fontFamily: newFont });
   };
 
-  // **Handler for background update**
+  // **Handler for background update (current slide)**
   const handleBackgroundUpdate = (newBackground) => {
     updateSlide(presentationId, slide.id, { ...slide, background: newBackground });
+  };
+
+  // **Handler for default background update**
+  const handleDefaultBackgroundUpdate = (newBackground) => {
+    updateDefaultBackground(presentationId, newBackground);
   };
 
   // Defensive check: Ensure slide is defined
@@ -427,69 +435,82 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
   return (
     <Box onClick={handleContainerClick} sx={{ userSelect: 'none' }}>
-      {/* Controls to Add Elements + Font Dropdown + Background Picker */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center">
-        <IconButton
-          color="primary"
-          onClick={() => setOpenTextModal(true)}
-          aria-label="Add Text"
-        >
-          <Add />
-          <Typography variant="caption">Text</Typography>
-        </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => setOpenImageModal(true)}
-          aria-label="Add Image"
-        >
-          <Add />
-          <Typography variant="caption">Image</Typography>
-        </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => setOpenVideoModal(true)}
-          aria-label="Add Video"
-        >
-          <Add />
-          <Typography variant="caption">Video</Typography>
-        </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => setOpenCodeModal(true)}
-          aria-label="Add Code"
-        >
-          <Add />
-          <Typography variant="caption">Code</Typography>
-        </IconButton>
-
-        {/* Font Family Dropdown */}
-        <FormControl sx={{ minWidth: 150 }} size="small">
-          <InputLabel id="font-family-select-label">Font</InputLabel>
-          <Select
-            labelId="font-family-select-label"
-            id="font-family-select"
-            value={selectedFont}
-            label="Font"
-            onChange={handleFontChange}
-            aria-label="Font Family Selector"
-          >
-            {FONT_FAMILIES.map((font) => (
-              <MenuItem key={font} value={font}>
-                <Typography style={{ fontFamily: font }}>{font}</Typography>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Background Picker Button */}
+      {/* Controls: Default Background Button, Element Addition Buttons, Font Dropdown */}
+      <Stack direction="column" spacing={2} sx={{ mb: 2 }} alignItems="flex-start">
+        {/* Default Background Button */}
         <IconButton
           color="secondary"
-          onClick={() => setOpenBackgroundModal(true)}
-          aria-label="Pick Background"
+          onClick={() => setOpenDefaultBackgroundModal(true)}
+          aria-label="Set Default Background"
         >
           <Brush />
-          <Typography variant="caption">Background</Typography>
+          <Typography variant="caption">Default Background</Typography>
         </IconButton>
+
+        {/* Element Addition Buttons and Font Dropdown */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <IconButton
+            color="primary"
+            onClick={() => setOpenTextModal(true)}
+            aria-label="Add Text"
+          >
+            <Add />
+            <Typography variant="caption">Text</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            onClick={() => setOpenImageModal(true)}
+            aria-label="Add Image"
+          >
+            <Add />
+            <Typography variant="caption">Image</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            onClick={() => setOpenVideoModal(true)}
+            aria-label="Add Video"
+          >
+            <Add />
+            <Typography variant="caption">Video</Typography>
+          </IconButton>
+          <IconButton
+            color="primary"
+            onClick={() => setOpenCodeModal(true)}
+            aria-label="Add Code"
+          >
+            <Add />
+            <Typography variant="caption">Code</Typography>
+          </IconButton>
+
+          {/* Font Family Dropdown */}
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel id="font-family-select-label">Font</InputLabel>
+            <Select
+              labelId="font-family-select-label"
+              id="font-family-select"
+              value={selectedFont}
+              label="Font"
+              onChange={handleFontChange}
+              aria-label="Font Family Selector"
+            >
+              {FONT_FAMILIES.map((font) => (
+                <MenuItem key={font} value={font}>
+                  <Typography style={{ fontFamily: font }}>{font}</Typography>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Current Slide Background Picker Button */}
+          <IconButton
+            color="secondary"
+            onClick={() => setOpenBackgroundModal(true)}
+            aria-label="Set Current Slide Background"
+          >
+            <Brush />
+            <Typography variant="caption">Current Slide Background</Typography>
+          </IconButton>
+        </Stack>
       </Stack>
 
       {/* Slide Container with Dynamic Background */}
@@ -548,7 +569,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         onAdd={handleAddElement}
       />
 
-      {/* Background Picker Modal */}
+      {/* Background Picker Modal for Current Slide */}
       <BackgroundPickerModal
         open={openBackgroundModal}
         onClose={() => setOpenBackgroundModal(false)}
@@ -556,9 +577,16 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         onUpdate={handleBackgroundUpdate}
       />
 
+      {/* Default Background Picker Modal */}
+      <DefaultBackgroundPickerModal
+        open={openDefaultBackgroundModal}
+        onClose={() => setOpenDefaultBackgroundModal(false)}
+        presentationId={presentationId}
+      />
+
       {/* Edit Element Modal */}
       {getEditModal()}
-    </Box>
+    </Box> // Properly close the main <Box> component
   );
 };
 
@@ -576,6 +604,7 @@ SlideEditor.propTypes = {
         colors: PropTypes.arrayOf(PropTypes.string),
       }),
       image: PropTypes.string,
+      uploadedImage: PropTypes.string, // To handle uploaded images
     }),
   }).isRequired,
   updateSlide: PropTypes.func.isRequired,
