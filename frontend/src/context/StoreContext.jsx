@@ -30,20 +30,42 @@ export const StoreProvider = ({ children }) => {
    * @param {object} slide - The slide object to check and initialize.
    * @returns {object} - Slide object with background property.
    */
-  const ensureSlideBackground = (slide) => {
-    return {
-      ...slide,
-      background: slide.background || {
-        style: 'solid',
-        color: '#ffffff',
-        gradient: {
-          direction: 'to right',
-          colors: ['#ff7e5f', '#feb47b'],
-        },
-        image: '',
+  const ensureSlideBackground = (slide) => ({
+    ...slide,
+    background: slide.background || {
+      style: 'solid',
+      color: '#ffffff',
+      gradient: {
+        direction: 'to right',
+        colors: ['#ff7e5f', '#feb47b'],
       },
-    };
-  };
+      image: '',
+      uploadedImage: '', // To handle uploaded images
+    },
+  });
+
+  /**
+   * Utility function to ensure each presentation has a defaultBackground property.
+   *
+   * @param {object} presentation - The presentation object to check and initialize.
+   * @returns {object} - Presentation object with defaultBackground property.
+   */
+  const ensurePresentationDefaults = (presentation) => ({
+    ...presentation,
+    defaultBackground: presentation.defaultBackground || {
+      style: 'solid',
+      color: '#ffffff',
+      gradient: {
+        direction: 'to right',
+        colors: ['#ff7e5f', '#feb47b'],
+      },
+      image: '',
+      uploadedImage: '', // To handle uploaded images
+    },
+    slides: Array.isArray(presentation.slides)
+      ? presentation.slides.map((slide) => ensureSlideBackground(slide))
+      : [ensureSlideBackground({ id: `slide-${Date.now()}`, elements: [] })],
+  });
 
   /**
    * Fetches the store data when the user is authenticated.
@@ -55,24 +77,21 @@ export const StoreProvider = ({ children }) => {
           setLoading(true);
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
-  
-          // Ensure the store has presentations and each presentation has slides with elements and background
+
+          // Ensure the store has presentations with defaultBackground and slides with backgrounds
           const fetchedStore =
             response.data &&
             response.data.store &&
             Array.isArray(response.data.store.presentations)
               ? {
-                  presentations: response.data.store.presentations.map((presentation) => ({
-                    ...presentation,
-                    slides: Array.isArray(presentation.slides)
-                      ? presentation.slides.map((slide) => ensureSlideBackground(slide))
-                      : [ensureSlideBackground({ id: `slide-${Date.now()}`, elements: [] })],
-                  })),
+                  presentations: response.data.store.presentations.map((presentation) =>
+                    ensurePresentationDefaults(presentation)
+                  ),
                 }
               : { presentations: [] };
-  
+
           console.log('Fetched Store:', fetchedStore); // Additional debugging
-  
+
           setStoreState(fetchedStore);
           setLoading(false);
         } catch (err) {
@@ -86,7 +105,7 @@ export const StoreProvider = ({ children }) => {
         setLoading(false);
       }
     };
-  
+
     fetchStore();
   }, [isAuthenticated]);
 
@@ -120,11 +139,11 @@ export const StoreProvider = ({ children }) => {
     });
 
     // Add the initial slide and default thumbnail to the presentation's slides array
-    const newPresentation = {
+    const newPresentation = ensurePresentationDefaults({
       ...presentation,
       slides: [initialSlide],
       thumbnail: defaultThumbnail, // Set the default thumbnail
-    };
+    });
 
     const updatedStore = {
       ...store,
@@ -144,7 +163,9 @@ export const StoreProvider = ({ children }) => {
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((presentation) =>
-        presentation.id === presentationId ? updatedPresentation : presentation
+        presentation.id === presentationId
+          ? ensurePresentationDefaults(updatedPresentation)
+          : presentation
       ),
     };
     await updateStoreData(updatedStore);
@@ -169,14 +190,21 @@ export const StoreProvider = ({ children }) => {
    * Adds a new slide to a specific presentation.
    *
    * @param {string} presentationId - ID of the presentation.
-   * @param {object} slide - The slide object to add.
    */
-  const addSlide = async (presentationId, slide) => {
-    const newSlide = ensureSlideBackground({
+  const addSlide = async (presentationId) => {
+    const presentation = store.presentations.find((p) => p.id === presentationId);
+    if (!presentation) {
+      console.error(`Presentation with ID ${presentationId} not found.`);
+      return;
+    }
+
+    // Create a new slide with the presentation's default background
+    const newSlide = {
       id: `slide-${Date.now()}`,
       elements: [],
-      fontFamily: 'Arial',
-    });
+      fontFamily: presentation.defaultBackground.fontFamily || 'Arial',
+      background: { ...presentation.defaultBackground },
+    };
 
     const updatedStore = {
       ...store,
@@ -353,6 +381,24 @@ export const StoreProvider = ({ children }) => {
     await updateStoreData(updatedStore);
   };
 
+  /**
+   * Updates the default background of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {object} newBackground - The new default background settings.
+   */
+  const updateDefaultBackground = async (presentationId, newBackground) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? { ...presentation, defaultBackground: newBackground }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -369,6 +415,7 @@ export const StoreProvider = ({ children }) => {
         updateElement,
         deleteElement,
         updateSlideFontFamily,
+        updateDefaultBackground, // Expose the new function
         setStoreState,
       }}
     >
