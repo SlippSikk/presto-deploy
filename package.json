@@ -4,6 +4,8 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.6",
     "@mui/material": "^6.1.6",
+    "react-rnd": "^10.4.13",
+    "react-syntax-highlighter": "^15.6.1",
     "uuid": "^11.0.2"
   }
 }

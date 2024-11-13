@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -16,7 +16,8 @@ import {
 import { Edit, ArrowBack } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
-import SlideNumber from '../components/SlideNumber';
+import SlideEditor from '../components/SlideEditor';
+import SlideNumber from '../components/SlideNumber'; // Import SlideNumber
 
 const PresentationPage = () => {
   const { id } = useParams();
@@ -50,7 +51,10 @@ const PresentationPage = () => {
   }
 
   const currentThumbnail = presentation.thumbnail || defaultThumbnail;
-  const currentSlide = presentation.slides[currentSlideIndex] || {};
+  const currentSlide =
+    Array.isArray(presentation.slides) && presentation.slides.length > 0
+      ? presentation.slides[currentSlideIndex] || presentation.slides[0]
+      : { id: `slide-${Date.now()}`, elements: [] };
 
   const handleDeletePresentation = async () => {
     try {
@@ -103,7 +107,7 @@ const PresentationPage = () => {
   const handleAddSlide = async () => {
     const newSlide = {
       id: `slide-${Date.now()}`,
-      content: '',
+      elements: [],
     };
     try {
       await addSlide(id, newSlide);
@@ -115,7 +119,7 @@ const PresentationPage = () => {
 
   const handleDeleteSlide = async () => {
     const slideId = currentSlide.id;
-  
+
     try {
       await deleteSlide(id, slideId);
       setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
@@ -126,6 +130,10 @@ const PresentationPage = () => {
 
   const handleBack = () => {
     navigate('/dashboard');
+  };
+
+  const updateSlideHandler = async (presentationId, slideId, updatedSlide) => {
+    await updateSlide(presentationId, slideId, updatedSlide);
   };
 
   return (
@@ -187,27 +195,19 @@ const PresentationPage = () => {
       )}
 
       {/* Slide Content */}
-      <Box
-        sx={{
-          position: 'relative',
-          border: '1px solid #ccc',
-          height: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 2,
-          overflowY: 'auto',
-          mb: 4,
-        }}
-      >
-        <Typography variant="h5">{currentSlide.content || 'Empty Slide'}</Typography>
-        <SlideNumber current={currentSlideIndex + 1} total={presentation.slides.length} />
+      <Box sx={{ position: 'relative' }}>
+        <SlideEditor presentationId={id} slide={currentSlide} updateSlide={updateSlideHandler} />
+        <SlideNumber
+          current={currentSlideIndex + 1}
+          total={Array.isArray(presentation.slides) ? presentation.slides.length : 0}
+          sx={{ position: 'absolute', bottom: 8, right: 16 }} // Position SlideNumber
+        />
       </Box>
 
       {/* Slide Controls */}
       <SlideControls
         currentSlideIndex={currentSlideIndex}
-        totalSlides={presentation.slides.length}
+        totalSlides={Array.isArray(presentation.slides) ? presentation.slides.length : 0}
         onPrevious={() => setCurrentSlideIndex(currentSlideIndex - 1)}
         onNext={() => setCurrentSlideIndex(currentSlideIndex + 1)}
       />
@@ -266,6 +266,7 @@ const PresentationPage = () => {
             accept="image/*"
             onChange={(e) => setNewThumbnailFile(e.target.files[0])}
             style={{ marginTop: '10px' }}
+            aria-label="Upload Thumbnail"
           />
         </DialogContent>
         <DialogActions>
