@@ -25,6 +25,27 @@ export const StoreProvider = ({ children }) => {
   const [error, setError] = useState('');
 
   /**
+   * Utility function to ensure each slide has a background property.
+   *
+   * @param {object} slide - The slide object to check and initialize.
+   * @returns {object} - Slide object with background property.
+   */
+  const ensureSlideBackground = (slide) => {
+    return {
+      ...slide,
+      background: slide.background || {
+        style: 'solid',
+        color: '#ffffff',
+        gradient: {
+          direction: 'to right',
+          colors: ['#ff7e5f', '#feb47b'],
+        },
+        image: '',
+      },
+    };
+  };
+
+  /**
    * Fetches the store data when the user is authenticated.
    */
   useEffect(() => {
@@ -35,7 +56,7 @@ export const StoreProvider = ({ children }) => {
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
 
-          // Ensure the store has presentations and each presentation has slides with elements
+          // Ensure the store has presentations and each presentation has slides with elements and background
           const fetchedStore =
             response.data &&
             response.data.store &&
@@ -44,11 +65,8 @@ export const StoreProvider = ({ children }) => {
                   presentations: response.data.store.presentations.map((presentation) => ({
                     ...presentation,
                     slides: Array.isArray(presentation.slides)
-                      ? presentation.slides.map((slide) => ({
-                          ...slide,
-                          elements: Array.isArray(slide.elements) ? slide.elements : [],
-                        }))
-                      : [{ id: `slide-${Date.now()}`, elements: [] }],
+                      ? presentation.slides.map((slide) => ensureSlideBackground(slide))
+                      : [ensureSlideBackground({ id: `slide-${Date.now()}`, elements: [] })],
                   })),
                 }
               : { presentations: [] };
@@ -95,11 +113,11 @@ export const StoreProvider = ({ children }) => {
    */
   const addPresentation = async (presentation) => {
     // Create an initial slide with a unique ID and empty elements array
-    const initialSlide = {
+    const initialSlide = ensureSlideBackground({
       id: `slide-${Date.now()}`, // Unique ID for the slide
       elements: [], // Initialize with no elements
       fontFamily: 'Arial', // Default font family for the slide
-    };
+    });
 
     // Add the initial slide and default thumbnail to the presentation's slides array
     const newPresentation = {
@@ -154,21 +172,12 @@ export const StoreProvider = ({ children }) => {
    * @param {object} slide - The slide object to add.
    */
   const addSlide = async (presentationId, slide) => {
-    const newSlide = {
+    const newSlide = ensureSlideBackground({
       id: `slide-${Date.now()}`,
       elements: [],
       fontFamily: 'Arial',
-      background: {
-        style: 'solid',
-        color: '#ffffff',
-        gradient: {
-          direction: 'to right',
-          colors: ['#ff7e5f', '#feb47b'],
-        },
-        image: '',
-      },
-    };
-  
+    });
+
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((p) =>
@@ -177,17 +186,17 @@ export const StoreProvider = ({ children }) => {
           : p
       ),
     };
-  
+
     await updateStoreData(updatedStore);
   };
 
   /**
-  * Updates the font family of a specific slide.
-  *
-  * @param {string} presentationId - The ID of the presentation.
-  * @param {string} slideId - The ID of the slide to update.
-  * @param {string} newFontFamily - The new font family to set.
-  */
+   * Updates the font family of a specific slide.
+   *
+   * @param {string} presentationId - The ID of the presentation.
+   * @param {string} slideId - The ID of the slide to update.
+   * @param {string} newFontFamily - The new font family to set.
+   */
   const updateSlideFontFamily = async (presentationId, slideId, newFontFamily) => {
     const updatedStore = {
       ...store,
@@ -201,7 +210,7 @@ export const StoreProvider = ({ children }) => {
         };
       }),
     };
-  
+
     await updateStoreData(updatedStore);
   };
 
@@ -220,7 +229,7 @@ export const StoreProvider = ({ children }) => {
           ? {
               ...presentation,
               slides: presentation.slides.map((slide) =>
-                slide.id === slideId ? updatedSlide : slide
+                slide.id === slideId ? ensureSlideBackground(updatedSlide) : slide
               ),
             }
           : presentation
@@ -237,12 +246,12 @@ export const StoreProvider = ({ children }) => {
    */
   const deleteSlide = async (presentationId, slideId) => {
     const presentation = store.presentations.find(p => p.id === presentationId);
-  
+
     // Check if there is only one slide in the presentation
     if (presentation.slides.length <= 1) {
       throw new Error('Cannot delete the only slide in the presentation. Delete the presentation instead.');
     }
-  
+
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((presentation) =>
@@ -254,7 +263,7 @@ export const StoreProvider = ({ children }) => {
           : presentation
       ),
     };
-  
+
     await updateStoreData(updatedStore);
   };
 

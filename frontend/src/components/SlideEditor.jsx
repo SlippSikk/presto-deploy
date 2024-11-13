@@ -12,7 +12,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Add, Brush } from '@mui/icons-material'; // Added Brush icon
+import { Add } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
 import TextBlock from './elements/TextBlock';
@@ -28,7 +28,6 @@ import EditTextModal from './modals/EditTextModal';
 import EditImageModal from './modals/EditImageModal';
 import EditVideoModal from './modals/EditVideoModal';
 import EditCodeModal from './modals/EditCodeModal';
-import BackgroundPickerModal from './modals/BackgroundPickerModal'; // Import the new modal
 
 // Define available font families
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia'];
@@ -50,9 +49,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // **New State for Font Selection**
   const [selectedFont, setSelectedFont] = useState(slide.fontFamily || 'Arial');
 
-  // **New State for Background Picker Modal**
-  const [openBackgroundModal, setOpenBackgroundModal] = useState(false);
-
   const { deleteElement } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
@@ -60,7 +56,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     console.log('Slide prop:', slide);
   }, [slide]);
 
-  // **Effect to synchronize font when slide changes**
+  // **Effect to update selectedFont when slide changes**
   useEffect(() => {
     setSelectedFont(slide.fontFamily || 'Arial');
   }, [slide]);
@@ -70,11 +66,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const newFont = e.target.value;
     setSelectedFont(newFont);
     updateSlide(presentationId, slide.id, { ...slide, fontFamily: newFont });
-  };
-
-  // **Handler for background update**
-  const handleBackgroundUpdate = (newBackground) => {
-    updateSlide(presentationId, slide.id, { ...slide, background: newBackground });
   };
 
   // Defensive check: Ensure slide is defined
@@ -141,10 +132,12 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   };
 
   const handleUpdateElement = (updatedElement) => {
-    const updatedElements = elements.map((el) =>
-      el.id === updatedElement.id ? updatedElement : el
-    );
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+    updateSlide(presentationId, slide.id, {
+      ...slide,
+      elements: slide.elements.map((el) =>
+        el.id === updatedElement.id ? updatedElement : el
+      ),
+    });
     setOpenEditModal(false);
     setEditingElement(null);
   };
@@ -213,7 +206,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
               content={element.content}
               fontSize={element.fontSize}
               color={element.color}
-              fontFamily={slide.fontFamily || 'Arial'} // Apply selected font to text blocks
+              fontFamily={slide.fontFamily || 'Arial'} // **Pass fontFamily to TextBlock**
             />
           </Box>
         );
@@ -417,7 +410,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         )}
       </Rnd>
     );
-
   };
 
   // Deselect element when clicking outside
@@ -427,8 +419,8 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
   return (
     <Box onClick={handleContainerClick} sx={{ userSelect: 'none' }}>
-      {/* Controls to Add Elements + Font Dropdown + Background Picker */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center">
+      {/* **Updated: Controls to Add Elements + Font Dropdown** */}
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <IconButton
           color="primary"
           onClick={() => setOpenTextModal(true)}
@@ -462,7 +454,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           <Typography variant="caption">Code</Typography>
         </IconButton>
 
-        {/* Font Family Dropdown */}
+        {/* **New: Font Family Dropdown** */}
         <FormControl sx={{ minWidth: 150 }} size="small">
           <InputLabel id="font-family-select-label">Font</InputLabel>
           <Select
@@ -480,19 +472,9 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
             ))}
           </Select>
         </FormControl>
-
-        {/* Background Picker Button */}
-        <IconButton
-          color="secondary"
-          onClick={() => setOpenBackgroundModal(true)}
-          aria-label="Pick Background"
-        >
-          <Brush />
-          <Typography variant="caption">Background</Typography>
-        </IconButton>
       </Stack>
 
-      {/* Slide Container with Dynamic Background */}
+      {/* Slide Container */}
       <Box
         ref={containerRef}
         sx={{
@@ -500,15 +482,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           height: '60vh',
           border: '1px solid #ccc',
           margin: '0 auto',
-          backgroundColor: slide.background?.style === 'solid' ? slide.background.color : '#ffffff', // Default to white if not solid
-          backgroundImage:
-            slide.background?.style === 'gradient'
-              ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(', ')})`
-              : slide.background?.style === 'image'
-              ? `url(${slide.background.image})`
-              : 'none',
-          backgroundSize: slide.background?.style === 'image' ? 'cover' : 'auto',
-          backgroundRepeat: slide.background?.style === 'image' ? 'no-repeat' : 'repeat',
+          backgroundColor: '#ffffff', // Set slide background to white
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -548,14 +522,6 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         onAdd={handleAddElement}
       />
 
-      {/* Background Picker Modal */}
-      <BackgroundPickerModal
-        open={openBackgroundModal}
-        onClose={() => setOpenBackgroundModal(false)}
-        currentBackground={slide.background}
-        onUpdate={handleBackgroundUpdate}
-      />
-
       {/* Edit Element Modal */}
       {getEditModal()}
     </Box>
@@ -568,15 +534,6 @@ SlideEditor.propTypes = {
     id: PropTypes.string.isRequired,
     elements: PropTypes.arrayOf(PropTypes.object).isRequired,
     fontFamily: PropTypes.string,
-    background: PropTypes.shape({
-      style: PropTypes.oneOf(['solid', 'gradient', 'image']).isRequired,
-      color: PropTypes.string,
-      gradient: PropTypes.shape({
-        direction: PropTypes.string,
-        colors: PropTypes.arrayOf(PropTypes.string),
-      }),
-      image: PropTypes.string,
-    }),
   }).isRequired,
   updateSlide: PropTypes.func.isRequired,
 };
