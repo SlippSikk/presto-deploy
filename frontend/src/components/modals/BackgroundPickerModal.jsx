@@ -15,6 +15,7 @@ import {
   TextField,
   Typography,
   Box,
+  Stack,
 } from '@mui/material';
 import { SketchPicker } from 'react-color';
 
@@ -35,6 +36,7 @@ const BackgroundPickerModal = ({ open, onClose, currentBackground, onUpdate }) =
   const [gradientDirection, setGradientDirection] = useState('to right');
   const [gradientColors, setGradientColors] = useState(['#ff7e5f', '#feb47b']);
   const [imageURL, setImageURL] = useState('');
+  const [uploadedImage, setUploadedImage] = useState(''); // Base64 string
 
   // Effect to set initial state based on currentBackground
   useEffect(() => {
@@ -44,6 +46,7 @@ const BackgroundPickerModal = ({ open, onClose, currentBackground, onUpdate }) =
       setGradientDirection(currentBackground.gradient?.direction || 'to right');
       setGradientColors(currentBackground.gradient?.colors || ['#ff7e5f', '#feb47b']);
       setImageURL(currentBackground.image || '');
+      setUploadedImage(currentBackground.uploadedImage || '');
     } else {
       // Reset to defaults if currentBackground is undefined
       setBackgroundStyle('solid');
@@ -51,6 +54,7 @@ const BackgroundPickerModal = ({ open, onClose, currentBackground, onUpdate }) =
       setGradientDirection('to right');
       setGradientColors(['#ff7e5f', '#feb47b']);
       setImageURL('');
+      setUploadedImage('');
     }
   }, [currentBackground, open]);
 
@@ -122,6 +126,30 @@ const BackgroundPickerModal = ({ open, onClose, currentBackground, onUpdate }) =
   };
 
   /**
+   * Handler for image file upload.
+   *
+   * @param {object} e - Event object.
+   */
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Ensure it's an image
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+
+      // Convert to Base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result.toString());
+        setImageURL(''); // Clear URL if an image is uploaded
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  /**
    * Handler for submitting the background changes.
    */
   const handleSubmit = () => {
@@ -135,7 +163,12 @@ const BackgroundPickerModal = ({ open, onClose, currentBackground, onUpdate }) =
         colors: gradientColors,
       };
     } else if (backgroundStyle === 'image') {
-      updatedBackground.image = imageURL;
+      if (uploadedImage) {
+        updatedBackground.image = uploadedImage; // Use uploaded image
+        updatedBackground.uploadedImage = uploadedImage; // Store for future reference
+      } else {
+        updatedBackground.image = imageURL;
+      }
     }
 
     onUpdate(updatedBackground);
@@ -201,16 +234,34 @@ const BackgroundPickerModal = ({ open, onClose, currentBackground, onUpdate }) =
 
         {backgroundStyle === 'image' && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Image URL:</Typography>
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={imageURL}
-              onChange={handleImageURLChange}
-              placeholder="Enter image URL"
-              sx={{ mt: 1 }}
-              aria-label="Image URL Input"
-            />
+            <Typography variant="subtitle1">Image Selection:</Typography>
+            <Stack direction="row" spacing={2} sx={{ mt: 1 }} alignItems="center">
+              <TextField
+                fullWidth
+                variant="outlined"
+                value={imageURL}
+                onChange={handleImageURLChange}
+                placeholder="Enter image URL"
+                aria-label="Image URL Input"
+              />
+              <Typography variant="body2">OR</Typography>
+              <Button variant="contained" component="label" aria-label="Upload Image">
+                Upload Image
+                <input type="file" accept="image/*" hidden onChange={handleImageUpload} />
+              </Button>
+            </Stack>
+            {uploadedImage && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2">Uploaded Image Preview:</Typography>
+                <img src={uploadedImage} alt="Uploaded Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+              </Box>
+            )}
+            {!uploadedImage && imageURL && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2">Image Preview:</Typography>
+                <img src={imageURL} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+              </Box>
+            )}
             <Typography variant="caption" display="block" sx={{ mt: 1 }}>
               Ensure the image URL is publicly accessible.
             </Typography>
@@ -238,6 +289,7 @@ BackgroundPickerModal.propTypes = {
       colors: PropTypes.arrayOf(PropTypes.string),
     }),
     image: PropTypes.string,
+    uploadedImage: PropTypes.string, // For uploaded images
   }),
   onUpdate: PropTypes.func.isRequired,
 };
@@ -251,6 +303,7 @@ BackgroundPickerModal.defaultProps = {
       colors: ['#ff7e5f', '#feb47b'],
     },
     image: '',
+    uploadedImage: '',
   },
 };
 

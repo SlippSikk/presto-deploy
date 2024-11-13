@@ -1,1 +1,4 @@
 - Added 5 fonts to be changed
+- Multicolour (Multiple colour blends using "Add Color" button for gradients) background gradient
+- Gradient direction options
+- Colour picker tool for gradients
