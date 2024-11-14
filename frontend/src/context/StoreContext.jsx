@@ -45,6 +45,24 @@ export const StoreProvider = ({ children }) => {
   });
 
   /**
+   * Updates the transition type of a specific presentation
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {string} newTransitionType - The new transition type ('none', 'fade', 'slideLeft', 'slideRight').
+   */
+  const updateTransitionType = async (presentationId, newTransitionType) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? { ...presentation, transitionType: newTransitionType }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
+  /**
    * Utility function to ensure each presentation has a defaultBackground property.
    *
    * @param {object} presentation - The presentation object to check and initialize.
@@ -52,6 +70,7 @@ export const StoreProvider = ({ children }) => {
    */
   const ensurePresentationDefaults = (presentation) => ({
     ...presentation,
+    transitionType: presentation.transitionType || 'none', // Add transitionType
     defaultBackground: presentation.defaultBackground || {
       style: 'solid',
       color: '#ffffff',
@@ -415,7 +434,8 @@ export const StoreProvider = ({ children }) => {
         updateElement,
         deleteElement,
         updateSlideFontFamily,
-        updateDefaultBackground, // Expose the new function
+        updateDefaultBackground, 
+        updateTransitionType,
         setStoreState,
       }}
     >
