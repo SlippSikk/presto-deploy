@@ -40,8 +40,9 @@ export const StoreProvider = ({ children }) => {
         colors: ['#ff7e5f', '#feb47b'],
       },
       image: '',
-      uploadedImage: '', // To handle uploaded images
+      uploadedImage: '',
     },
+    transitionType: slide.transitionType || 'none', // Default to 'none' if not set
   });
 
   /**

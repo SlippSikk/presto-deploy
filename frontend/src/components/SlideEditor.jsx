@@ -470,6 +470,16 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           flexWrap="wrap" // Allows wrapping on smaller screens
         >
           <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+
+            {/* Current Slide Background Picker Button */}
+            <IconButton
+              color="secondary"
+              onClick={() => setOpenBackgroundModal(true)}
+              aria-label="Set Current Slide Background"
+            >
+              <Brush />
+              <Typography variant="caption">Current Slide Background</Typography>
+            </IconButton>
             {/* Add Text Button */}
             <IconButton
               color="primary"
@@ -526,15 +536,26 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
               </Select>
             </FormControl>
 
-            {/* Current Slide Background Picker Button */}
-            <IconButton
-              color="secondary"
-              onClick={() => setOpenBackgroundModal(true)}
-              aria-label="Set Current Slide Background"
-            >
-              <Brush />
-              <Typography variant="caption">Current Slide Background</Typography>
-            </IconButton>
+            {/* Transition Picker */}
+            <FormControl sx={{ minWidth: 150 }} size="small">
+              <InputLabel id="transition-type-select-label">Transition</InputLabel>
+              <Select
+                labelId="transition-type-select-label"
+                id="transition-type-select"
+                value={slide.transitionType || 'none'}
+                label="Transition"
+                onChange={(e) => {
+                  const updatedSlide = { ...slide, transitionType: e.target.value };
+                  updateSlide(presentationId, slide.id, updatedSlide);
+                }}
+                aria-label="Transition Type Selector"
+              >
+                <MenuItem value="none">None</MenuItem>
+                <MenuItem value="fade">Fade</MenuItem>
+                <MenuItem value="slideLeft">Slide Left</MenuItem>
+                <MenuItem value="slideRight">Slide Right</MenuItem>
+              </Select>
+            </FormControl>
           </Stack>
 
           {/* Preview Presentation Button */}

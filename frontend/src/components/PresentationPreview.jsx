@@ -64,6 +64,26 @@ const PresentationPreview = () => {
     }
   };
 
+  // Transitions
+  const getTransitionStyle = (transitionType) => {
+    switch (transitionType) {
+      case 'fade':
+        return {
+          animation: 'fadeIn 1s ease-in-out',
+        };
+      case 'slideLeft':
+        return {
+          animation: 'slideLeft 1s ease-in-out',
+        };
+      case 'slideRight':
+        return {
+          animation: 'slideRight 1s ease-in-out',
+        };
+      default:
+        return {};
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -80,14 +100,40 @@ const PresentationPreview = () => {
         padding: 0,
       }}
     >
+      {/* Inject keyframes into the page */}
       <style>
         {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          @keyframes slideLeft {
+            from {
+              transform: translateX(100%);
+            }
+            to {
+              transform: translateX(0);
+            }
+          }
+          @keyframes slideRight {
+            from {
+              transform: translateX(-100%);
+            }
+            to {
+              transform: translateX(0);
+            }
+          }
           body {
             overflow: hidden; /* Prevent scrolling */
             margin: 0; /* Remove body margin */
           }
         `}
       </style>
+
       {loading ? (
         <Typography variant="h4" color="black">
           Loading presentation preview...
@@ -113,6 +159,7 @@ const PresentationPreview = () => {
           {/* Slide Canvas */}
           <Box
             sx={{
+              ...getTransitionStyle(slides[currentSlideIndex]?.transitionType),
               width: '90vw',
               height: '50vw', // Maintain 16:9 aspect ratio
               maxWidth: '1280px',
