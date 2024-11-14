@@ -1,28 +1,14 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
-import PresentationPage from './pages/PresentationPage'; // Import PresentationPage
+import PresentationPage from './pages/PresentationPage';
+import PresentationPreview from './components/PresentationPreview';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-/**
- * Custom theme for the application using MUI's ThemeProvider.
- * Defines primary and secondary color palettes.
- */
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2', // Customize your primary color
-    },
-    secondary: {
-      main: '#dc004e', // Customize your secondary color
-    },
-  },
-});
+import { CssBaseline } from '@mui/material';
+import CustomThemeProvider from './context/ThemeContext';
 
 /**
  * App component that sets up the routing and theming for the application.
@@ -30,7 +16,9 @@ const theme = createTheme({
  */
 const App = () => {
   return (
-    <ThemeProvider theme={theme}>
+    <CustomThemeProvider>
+      {/* CssBaseline kickstarts an elegant, consistent, and simple baseline to build upon. */}
+      <CssBaseline />
       <Navbar />
       <Routes>
         {/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}
@@ -55,9 +43,16 @@ const App = () => {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/presentation/:id/preview"
+          element={
+            <PrivateRoute>
+              <PresentationPreview />
+            </PrivateRoute>
+          }
+        />
       </Routes>
-    </ThemeProvider>
+    </CustomThemeProvider>
   );
 };
 

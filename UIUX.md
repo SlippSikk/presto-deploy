@@ -1,0 +1,3 @@
+- Removed white background for textblocks when previewing -> Imitates textbox behaviour on slides.com and microsoft's powerpoint
+- Added white background for code blocks when previewing -> Added visibility and imitates other
+- Saves input content for adding components (text, image, video and code) so the data is saved if user accidentally closes the overlay.

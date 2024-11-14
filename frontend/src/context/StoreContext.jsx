@@ -1,10 +1,9 @@
-// src/context/StoreContext.jsx
-
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 import { getStore, setStore } from '../services/api';
 import { AuthContext } from './AuthContext';
 import PropTypes from 'prop-types';
 import defaultThumbnail from '../assets/default-thumbnail.jpg';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * StoreContext provides store data and functions to manage presentations and slides.
@@ -20,9 +19,95 @@ export const StoreContext = createContext();
  */
 export const StoreProvider = ({ children }) => {
   const { isAuthenticated, loading: authLoading, auth } = useContext(AuthContext);
+  console.log(authLoading, auth);
   const [store, setStoreState] = useState({ presentations: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  /**
+   * Utility function to ensure each slide has a background property.
+   *
+   * @param {object} slide - The slide object to check and initialize.
+   * @returns {object} - Slide object with background property.
+   */
+  const ensureSlideBackground = (slide) => ({
+    ...slide,
+    background: slide.background || {
+      style: 'solid',
+      color: '#ffffff',
+      gradient: {
+        direction: 'to right',
+        colors: ['#ff7e5f', '#feb47b'],
+      },
+      image: '',
+      uploadedImage: '',
+    },
+    transitionType: slide.transitionType || 'none', // Default to 'none' if not set
+  });
+
+  /**
+   * Utility function to ensure each presentation has default properties.
+   *
+   * @param {object} presentation - The presentation object to check and initialize.
+   * @returns {object} - Presentation object with default properties.
+   */
+  const ensurePresentationDefaults = (presentation) => ({
+    ...presentation,
+    favorited: presentation.favorited || false, // Initialize favorited to false if not set
+    transitionType: presentation.transitionType || 'none',
+    defaultBackground: presentation.defaultBackground || {
+      style: 'solid',
+      color: '#ffffff',
+      gradient: {
+        direction: 'to right',
+        colors: ['#ff7e5f', '#feb47b'],
+      },
+      image: '',
+      uploadedImage: '',
+    },
+    slides: Array.isArray(presentation.slides)
+      ? presentation.slides.map((slide) => ensureSlideBackground(slide))
+      : [ensureSlideBackground({ id: `slide-${uuidv4()}`, elements: [] })],
+  });
+
+  /**
+   * Reorders the slides of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {Array} newSlides - The new ordered slides array.
+   */
+  const reorderSlides = async (presentationId, newSlides) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? { ...presentation, slides: newSlides }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+   * Updates the transition type of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {string} newTransitionType - The new transition type ('none', 'fade', 'slideLeft', 'slideRight').
+   */
+  const updateTransitionType = async (presentationId, newTransitionType) => {
+    const presentation = store.presentations.find((p) => p.id === presentationId);
+    if (!presentation) {
+      console.error(`Presentation with ID ${presentationId} not found.`);
+      return;
+    }
+
+    const updatedPresentation = {
+      ...presentation,
+      transitionType: newTransitionType,
+    };
+
+    await updatePresentation(presentationId, updatedPresentation);
+  };
 
   /**
    * Fetches the store data when the user is authenticated.
@@ -35,22 +120,16 @@ export const StoreProvider = ({ children }) => {
           const response = await getStore();
           console.log('Store Data from API:', response.data); // Debugging line
 
-          // Ensure the store has presentations and each presentation has slides with elements
+          // Ensure the store has presentations with defaultBackground and slides with backgrounds
           const fetchedStore =
             response.data &&
             response.data.store &&
             Array.isArray(response.data.store.presentations)
               ? {
-                  presentations: response.data.store.presentations.map((presentation) => ({
-                    ...presentation,
-                    slides: Array.isArray(presentation.slides)
-                      ? presentation.slides.map((slide) => ({
-                          ...slide,
-                          elements: Array.isArray(slide.elements) ? slide.elements : [],
-                        }))
-                      : [{ id: `slide-${Date.now()}`, elements: [] }],
-                  })),
-                }
+                presentations: response.data.store.presentations.map((presentation) =>
+                  ensurePresentationDefaults(presentation)
+                ),
+              }
               : { presentations: [] };
 
           console.log('Fetched Store:', fetchedStore); // Additional debugging
@@ -95,17 +174,18 @@ export const StoreProvider = ({ children }) => {
    */
   const addPresentation = async (presentation) => {
     // Create an initial slide with a unique ID and empty elements array
-    const initialSlide = {
-      id: `slide-${Date.now()}`, // Unique ID for the slide
+    const initialSlide = ensureSlideBackground({
+      id: `slide-${uuidv4()}`, // Unique ID for the slide
       elements: [], // Initialize with no elements
-    };
+      fontFamily: 'Arial', // Default font family for the slide
+    });
 
     // Add the initial slide and default thumbnail to the presentation's slides array
-    const newPresentation = {
+    const newPresentation = ensurePresentationDefaults({
       ...presentation,
       slides: [initialSlide],
       thumbnail: defaultThumbnail, // Set the default thumbnail
-    };
+    });
 
     const updatedStore = {
       ...store,
@@ -125,7 +205,9 @@ export const StoreProvider = ({ children }) => {
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((presentation) =>
-        presentation.id === presentationId ? updatedPresentation : presentation
+        presentation.id === presentationId
+          ? ensurePresentationDefaults(updatedPresentation)
+          : presentation
       ),
     };
     await updateStoreData(updatedStore);
@@ -150,17 +232,55 @@ export const StoreProvider = ({ children }) => {
    * Adds a new slide to a specific presentation.
    *
    * @param {string} presentationId - ID of the presentation.
-   * @param {object} slide - The slide object to add.
    */
-  const addSlide = async (presentationId, slide) => {
+  const addSlide = async (presentationId) => {
+    const presentation = store.presentations.find((p) => p.id === presentationId);
+    if (!presentation) {
+      console.error(`Presentation with ID ${presentationId} not found.`);
+      return;
+    }
+
+    // Create a new slide with the presentation's default background
+    const newSlide = {
+      id: `slide-${uuidv4()}`, // Unique ID without special characters
+      elements: [],
+      fontFamily: presentation.defaultBackground.fontFamily || 'Arial',
+      background: { ...presentation.defaultBackground },
+    };
+
     const updatedStore = {
       ...store,
-      presentations: store.presentations.map((presentation) =>
-        presentation.id === presentationId
-          ? { ...presentation, slides: [...presentation.slides, slide] }
-          : presentation
+      presentations: store.presentations.map((p) =>
+        p.id === presentationId
+          ? { ...p, slides: [...p.slides, newSlide] }
+          : p
       ),
     };
+
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+   * Updates the font family of a specific slide.
+   *
+   * @param {string} presentationId - The ID of the presentation.
+   * @param {string} slideId - The ID of the slide to update.
+   * @param {string} newFontFamily - The new font family to set.
+   */
+  const updateSlideFontFamily = async (presentationId, slideId, newFontFamily) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((p) => {
+        if (p.id !== presentationId) return p;
+        return {
+          ...p,
+          slides: p.slides.map((s) =>
+            s.id === slideId ? { ...s, fontFamily: newFontFamily } : s
+          ),
+        };
+      }),
+    };
+
     await updateStoreData(updatedStore);
   };
 
@@ -177,11 +297,11 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId ? updatedSlide : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId ? ensureSlideBackground(updatedSlide) : slide
+            ),
+          }
           : presentation
       ),
     };
@@ -196,24 +316,24 @@ export const StoreProvider = ({ children }) => {
    */
   const deleteSlide = async (presentationId, slideId) => {
     const presentation = store.presentations.find(p => p.id === presentationId);
-  
+
     // Check if there is only one slide in the presentation
     if (presentation.slides.length <= 1) {
       throw new Error('Cannot delete the only slide in the presentation. Delete the presentation instead.');
     }
-  
+
     const updatedStore = {
       ...store,
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.filter((slide) => slide.id !== slideId),
-            }
+            ...presentation,
+            slides: presentation.slides.filter((slide) => slide.id !== slideId),
+          }
           : presentation
       ),
     };
-  
+
     await updateStoreData(updatedStore);
   };
 
@@ -230,13 +350,13 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId
-                  ? { ...slide, elements: [...slide.elements, element] }
-                  : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId
+                ? { ...slide, elements: [...slide.elements, element] }
+                : slide
+            ),
+          }
           : presentation
       ),
     };
@@ -256,18 +376,18 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId
-                  ? {
-                      ...slide,
-                      elements: slide.elements.map((element) =>
-                        element.id === updatedElement.id ? updatedElement : element
-                      ),
-                    }
-                  : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId
+                ? {
+                  ...slide,
+                  elements: slide.elements.map((element) =>
+                    element.id === updatedElement.id ? updatedElement : element
+                  ),
+                }
+                : slide
+            ),
+          }
           : presentation
       ),
     };
@@ -287,16 +407,34 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId
-                  ? {
-                      ...slide,
-                      elements: slide.elements.filter((element) => element.id !== elementId),
-                    }
-                  : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId
+                ? {
+                  ...slide,
+                  elements: slide.elements.filter((element) => element.id !== elementId),
+                }
+                : slide
+            ),
+          }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+   * Updates the default background of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {object} newBackground - The new default background settings.
+   */
+  const updateDefaultBackground = async (presentationId, newBackground) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? { ...presentation, defaultBackground: newBackground }
           : presentation
       ),
     };
@@ -318,6 +456,10 @@ export const StoreProvider = ({ children }) => {
         addElement,
         updateElement,
         deleteElement,
+        updateSlideFontFamily,
+        updateDefaultBackground, 
+        updateTransitionType,
+        reorderSlides,
         setStoreState,
       }}
     >

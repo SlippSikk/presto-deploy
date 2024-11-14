@@ -1,6 +1,3 @@
-// src/components/elements/VideoBlock.jsx
-
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const VideoBlock = ({ src, autoPlay }) => {

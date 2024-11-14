@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginAPI, register as registerAPI, logout as logoutAPI, getStore } from '../services/api';
 import PropTypes from 'prop-types';
@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true); // To handle async token verification
   const [error, setError] = useState('');
+  console.log(setError);
 
   /**
    * Verifies the token's validity by fetching store data.
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     verifyToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   /**

@@ -1,9 +1,16 @@
-// src/components/SlideEditor.jsx
-
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Box, IconButton, Typography, Stack } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import {
+  Box,
+  IconButton,
+  Typography,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import { Add, Brush, PlayArrow } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
 import TextBlock from './elements/TextBlock';
@@ -19,6 +26,11 @@ import EditTextModal from './modals/EditTextModal';
 import EditImageModal from './modals/EditImageModal';
 import EditVideoModal from './modals/EditVideoModal';
 import EditCodeModal from './modals/EditCodeModal';
+import BackgroundPickerModal from './modals/BackgroundPickerModal';
+import DefaultBackgroundPickerModal from './modals/DefaultBackgroundPickerModal';
+
+// Define available font families
+const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia'];
 
 const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for adding new elements
@@ -34,21 +46,48 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for selected element (for showing resize/move handles)
   const [selectedElementId, setSelectedElementId] = useState(null);
 
-  const { deleteElement } = useContext(StoreContext);
+  // State for Font Selection
+  const [selectedFont, setSelectedFont] = useState(slide.fontFamily || 'Arial');
+
+  // States for Background Pickers
+  const [openBackgroundModal, setOpenBackgroundModal] = useState(false);
+  const [openDefaultBackgroundModal, setOpenDefaultBackgroundModal] = useState(false); // State for default background modal
+
+  // Destructure required functions from StoreContext
+  const { deleteElement, updateDefaultBackground } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
   useEffect(() => {
     console.log('Slide prop:', slide);
   }, [slide]);
 
-  // Defensive check: Ensure slide is defined
-  if (!slide) {
-    return (
-      <Box>
-        <Typography variant="h6">Slide data is unavailable.</Typography>
-      </Box>
-    );
-  }
+  // Effect to synchronize font when slide changes
+  useEffect(() => {
+    setSelectedFont(slide.fontFamily || 'Arial');
+  }, [slide]);
+
+  // Handler for font change
+  const handleFontChange = (e) => {
+    const newFont = e.target.value;
+    if (newFont === slide.fontFamily) return; // No change needed
+    setSelectedFont(newFont);
+    const updatedSlide = { ...slide, fontFamily: newFont };
+    updateSlide(presentationId, slide.id, updatedSlide);
+  };
+
+  // Handler for background update (current slide)
+  const handleBackgroundUpdate = (newBackground) => {
+    // Compare newBackground with current slide.background to prevent unnecessary updates
+    const isDifferent = JSON.stringify(newBackground) !== JSON.stringify(slide.background);
+    if (!isDifferent) return; // No change needed
+    const updatedSlide = { ...slide, background: newBackground };
+    updateSlide(presentationId, slide.id, updatedSlide);
+  };
+
+  // Handler for default background update
+  const handleDefaultBackgroundUpdate = (newBackground) => {
+    updateDefaultBackground(presentationId, newBackground);
+  };
 
   // Ensure elements is an array
   const elements = Array.isArray(slide.elements) ? slide.elements : [];
@@ -83,20 +122,35 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       ...elementData,
     };
     const updatedElements = [...elements, newElement];
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+    const updatedSlide = { ...slide, elements: updatedElements };
+    updateSlide(presentationId, slide.id, updatedSlide);
+  };
+
+  // Updated openPreview Function Using window.open
+  const openPreview = () => {
+    window.open(`/presentation/${presentationId}/preview`, '_blank');
   };
 
   const handleUpdateElementPositionAndSize = (id, position, size) => {
+    const element = elements.find((el) => el.id === id);
+    if (!element) return;
+
+    // Check if position and size have actually changed
+    const isPositionChanged = element.position.x !== position.x || element.position.y !== position.y;
+    const isSizeChanged = element.size.width !== size.width || element.size.height !== size.height;
+    if (!isPositionChanged && !isSizeChanged) return; // No change needed
+
     const updatedElements = elements.map((el) =>
       el.id === id
         ? {
-            ...el,
-            position, // { x: percentage, y: percentage }
-            size, // { width: percentage, height: percentage }
-          }
+          ...el,
+          position, // { x: percentage, y: percentage }
+          size, // { width: percentage, height: percentage }
+        }
         : el
     );
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+    const updatedSlide = { ...slide, elements: updatedElements };
+    updateSlide(presentationId, slide.id, updatedSlide);
   };
 
   const handleElementDoubleClick = (element) => {
@@ -105,10 +159,11 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   };
 
   const handleUpdateElement = (updatedElement) => {
-    updateSlide(presentationId, slide.id, {
-      ...slide,
-      elements: slide.elements.map((el) => (el.id === updatedElement.id ? updatedElement : el)),
-    });
+    const updatedElements = elements.map((el) =>
+      el.id === updatedElement.id ? updatedElement : el
+    );
+    const updatedSlide = { ...slide, elements: updatedElements };
+    updateSlide(presentationId, slide.id, updatedSlide);
     setOpenEditModal(false);
     setEditingElement(null);
   };
@@ -117,86 +172,87 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     if (!editingElement) return null;
 
     switch (editingElement.type) {
-      case ELEMENT_TYPES.TEXT:
-        return (
-          <EditTextModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      case ELEMENT_TYPES.IMAGE:
-        return (
-          <EditImageModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      case ELEMENT_TYPES.VIDEO:
-        return (
-          <EditVideoModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      case ELEMENT_TYPES.CODE:
-        return (
-          <EditCodeModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      default:
-        return null;
+    case ELEMENT_TYPES.TEXT:
+      return (
+        <EditTextModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    case ELEMENT_TYPES.IMAGE:
+      return (
+        <EditImageModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    case ELEMENT_TYPES.VIDEO:
+      return (
+        <EditVideoModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    case ELEMENT_TYPES.CODE:
+      return (
+        <EditCodeModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    default:
+      return null;
     }
   };
 
   const renderElement = (element) => {
     let content;
     switch (element.type) {
-      case ELEMENT_TYPES.TEXT:
-        content = (
-          <Box
-            sx={{
-              border: '1px solid lightgrey', // Soft grey border for text
-              padding: '5px',
-              backgroundColor: 'white',
-              width: '100%',
-              height: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <TextBlock
-              content={element.content}
-              fontSize={element.fontSize}
-              color={element.color}
-            />
-          </Box>
-        );
-        break;
-  
-      case ELEMENT_TYPES.IMAGE:
-        content = <ImageBlock src={element.src} alt={element.alt} />;
-        break;
-  
-      case ELEMENT_TYPES.VIDEO:
-        content = (
-          <Box
-            sx={{
-              position: 'relative',
-              width: '100%',
-              height: '100%',
-            }}
-          >
+    case ELEMENT_TYPES.TEXT:
+      content = (
+        <Box
+          sx={{
+            border: '1px solid lightgrey', // Soft grey border for text
+            padding: '5px',
+            backgroundColor: 'white',
+            width: '100%',
+            height: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <TextBlock
+            content={element.content}
+            fontSize={element.fontSize}
+            color={element.color}
+            fontFamily={slide.fontFamily || 'Arial'} // Apply selected font to text blocks
+          />
+        </Box>
+      );
+      break;
+
+    case ELEMENT_TYPES.IMAGE:
+      content = <ImageBlock src={element.src} alt={element.alt} />;
+      break;
+
+    case ELEMENT_TYPES.VIDEO:
+      content = (
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+          }}
+        >
           {selectedElementId === element.id && (
-           <Box
+            <Box
               sx={{
                 position: 'absolute',
                 width: 'calc(100% + 10px)',
@@ -206,41 +262,41 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
                 zIndex: 1,
               }}
             />
-            )}
-            <VideoBlock src={element.src} autoPlay={element.autoPlay} />
-          </Box>
-        );
-        break;
+          )}
+          <VideoBlock src={element.src} autoPlay={element.autoPlay} />
+        </Box>
+      );
+      break;
 
-        case ELEMENT_TYPES.CODE:
-          content = (
-            <Box
-              sx={{
-                border: '1px solid lightgrey',
-                padding: '10px',
-                backgroundColor: '#f5f5f5', // Light grey background for code blocks
-                fontFamily: 'monospace', // Use monospace font for code
-                width: '100%',
-                height: '100%',
-                boxSizing: 'border-box',
-              }}
-            >
-              <CodeBlock code={element.code} language={element.language} />
-            </Box>
-          );
-        break;
-      default:
-        return null;
+    case ELEMENT_TYPES.CODE:
+      content = (
+        <Box
+          sx={{
+            border: '1px solid lightgrey',
+            padding: '10px',
+            backgroundColor: '#f5f5f5', // Light grey background for code blocks
+            fontFamily: 'monospace', // Use monospace font for code
+            width: '100%',
+            height: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <CodeBlock code={element.code} language={element.language} />
+        </Box>
+      );
+      break;
+    default:
+      return null;
     }
-  
+
     // Convert percentage sizes to pixels
     const widthInPixels = (element.size.width / 100) * containerSize.width;
     const heightInPixels = (element.size.height / 100) * containerSize.height;
-  
+
     // Convert percentage positions to pixels
     const xInPixels = (element.position.x / 100) * containerSize.width;
     const yInPixels = (element.position.y / 100) * containerSize.height;
-  
+
     return (
       <Rnd
         key={element.id}
@@ -264,18 +320,22 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           const newHeight = (ref.offsetHeight / containerSize.height) * 100;
           const newX = (position.x / containerSize.width) * 100;
           const newY = (position.y / containerSize.height) * 100;
-  
+
           // Enforce minimum size of 1%
           const finalWidth = Math.max(newWidth, 1);
           const finalHeight = Math.max(newHeight, 1);
-  
+
           // Enforce boundaries
           const maxWidth = 100 - newX;
           const maxHeight = 100 - newY;
           const finalWidthClamped = Math.min(finalWidth, maxWidth);
           const finalHeightClamped = Math.min(finalHeight, maxHeight);
-  
-          handleUpdateElementPositionAndSize(element.id, { x: newX, y: newY }, { width: finalWidthClamped, height: finalHeightClamped });
+
+          handleUpdateElementPositionAndSize(
+            element.id,
+            { x: newX, y: newY },
+            { width: finalWidthClamped, height: finalHeightClamped }
+          );
         }}
         bounds="parent"
         minWidth={(1 / 100) * containerSize.width} // 1% of container width
@@ -310,7 +370,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         aria-label={`${element.type} element`}
       >
         {content}
-  
+
         {/* Render custom handles only for the selected element */}
         {selectedElementId === element.id && (
           <Box
@@ -376,6 +436,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         )}
       </Rnd>
     );
+
   };
 
   // Deselect element when clicking outside
@@ -385,43 +446,130 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
   return (
     <Box onClick={handleContainerClick} sx={{ userSelect: 'none' }}>
-      {/* Controls to Add Elements */}
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+      {/* Controls: Default Background Button, Element Addition Buttons, Font Dropdown, Current Slide Background, Preview */}
+      <Stack direction="column" spacing={2} sx={{ mb: 2 }} alignItems="flex-start">
+        {/* Default Background Button */}
         <IconButton
-          color="primary"
-          onClick={() => setOpenTextModal(true)}
-          aria-label="Add Text"
+          color="secondary"
+          onClick={() => setOpenDefaultBackgroundModal(true)}
+          aria-label="Set Default Background"
         >
-          <Add />
-          <Typography variant="caption">Text</Typography>
+          <Brush />
+          <Typography variant="caption">Default Background</Typography>
         </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => setOpenImageModal(true)}
-          aria-label="Add Image"
+
+        {/* Element Addition Buttons, Font Dropdown, Current Slide Background Picker, and Preview Button */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }} // Stack vertically on extra-small screens, horizontally on small and above
+          spacing={2}
+          alignItems="center"
+          sx={{ width: '100%' }}
+          justifyContent="space-between" // Pushes the Preview button to the right
+          flexWrap="wrap" // Allows wrapping on smaller screens
         >
-          <Add />
-          <Typography variant="caption">Image</Typography>
-        </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => setOpenVideoModal(true)}
-          aria-label="Add Video"
-        >
-          <Add />
-          <Typography variant="caption">Video</Typography>
-        </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => setOpenCodeModal(true)}
-          aria-label="Add Code"
-        >
-          <Add />
-          <Typography variant="caption">Code</Typography>
-        </IconButton>
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+
+            {/* Current Slide Background Picker Button */}
+            <IconButton
+              color="secondary"
+              onClick={() => setOpenBackgroundModal(true)}
+              aria-label="Set Current Slide Background"
+            >
+              <Brush />
+              <Typography variant="caption">Current Slide Background</Typography>
+            </IconButton>
+            {/* Add Text Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenTextModal(true)}
+              aria-label="Add Text"
+            >
+              <Add />
+              <Typography variant="caption">Text</Typography>
+            </IconButton>
+            {/* Add Image Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenImageModal(true)}
+              aria-label="Add Image"
+            >
+              <Add />
+              <Typography variant="caption">Image</Typography>
+            </IconButton>
+            {/* Add Video Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenVideoModal(true)}
+              aria-label="Add Video"
+            >
+              <Add />
+              <Typography variant="caption">Video</Typography>
+            </IconButton>
+            {/* Add Code Button */}
+            <IconButton
+              color="primary"
+              onClick={() => setOpenCodeModal(true)}
+              aria-label="Add Code"
+            >
+              <Add />
+              <Typography variant="caption">Code</Typography>
+            </IconButton>
+
+            {/* Font Family Dropdown */}
+            <FormControl sx={{ minWidth: 150 }} size="small">
+              <InputLabel id="font-family-select-label">Font</InputLabel>
+              <Select
+                labelId="font-family-select-label"
+                id="font-family-select"
+                value={selectedFont}
+                label="Font"
+                onChange={handleFontChange}
+                aria-label="Font Family Selector"
+              >
+                {FONT_FAMILIES.map((font) => (
+                  <MenuItem key={font} value={font}>
+                    <Typography style={{ fontFamily: font }}>{font}</Typography>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Transition Picker */}
+            <FormControl sx={{ minWidth: 150 }} size="small">
+              <InputLabel id="transition-type-select-label">Transition</InputLabel>
+              <Select
+                labelId="transition-type-select-label"
+                id="transition-type-select"
+                value={slide.transitionType || 'none'}
+                label="Transition"
+                onChange={(e) => {
+                  const updatedSlide = { ...slide, transitionType: e.target.value };
+                  updateSlide(presentationId, slide.id, updatedSlide);
+                }}
+                aria-label="Transition Type Selector"
+              >
+                <MenuItem value="none">None</MenuItem>
+                <MenuItem value="fade">Fade</MenuItem>
+                <MenuItem value="slideLeft">Slide Left</MenuItem>
+                <MenuItem value="slideRight">Slide Right</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
+
+          {/* Preview Presentation Button */}
+          <IconButton
+            color="primary"
+            onClick={openPreview}
+            aria-label="Preview Presentation"
+            size="large"
+            sx={{ marginTop: { xs: 1, sm: 0 } }} // Adds top margin on extra-small screens
+          >
+            <PlayArrow fontSize="large" />
+          </IconButton>
+        </Stack>
       </Stack>
 
-      {/* Slide Container */}
+      {/* Slide Container with Dynamic Background */}
       <Box
         ref={containerRef}
         sx={{
@@ -429,7 +577,18 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           height: '60vh',
           border: '1px solid #ccc',
           margin: '0 auto',
-          backgroundColor: '#ffffff', // Set slide background to white
+          backgroundColor:
+            slide.background?.style === 'solid' ? slide.background.color : '#ffffff', // Default to white if not solid
+          backgroundImage:
+            slide.background?.style === 'gradient'
+              ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(
+                ', '
+              )})`
+              : slide.background?.style === 'image'
+                ? `url(${slide.background.image})`
+                : 'none',
+          backgroundSize: slide.background?.style === 'image' ? 'cover' : 'auto',
+          backgroundRepeat: slide.background?.style === 'image' ? 'no-repeat' : 'repeat',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -451,27 +610,43 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       <AddTextModal
         open={openTextModal}
         onClose={() => setOpenTextModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
       <AddImageModal
         open={openImageModal}
         onClose={() => setOpenImageModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
       <AddVideoModal
         open={openVideoModal}
         onClose={() => setOpenVideoModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
       <AddCodeModal
         open={openCodeModal}
         onClose={() => setOpenCodeModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
+      />
+
+      {/* Background Picker Modal for Current Slide */}
+      <BackgroundPickerModal
+        open={openBackgroundModal}
+        onClose={() => setOpenBackgroundModal(false)}
+        currentBackground={slide.background}
+        onUpdate={handleBackgroundUpdate}
+      />
+
+      {/* Default Background Picker Modal */}
+      <DefaultBackgroundPickerModal
+        open={openDefaultBackgroundModal}
+        onClose={() => setOpenDefaultBackgroundModal(false)}
+        presentationId={presentationId}
+        onUpdate={handleDefaultBackgroundUpdate}
       />
 
       {/* Edit Element Modal */}
       {getEditModal()}
-    </Box>
+    </Box> // Properly close the main <Box> component
   );
 };
 
@@ -479,7 +654,18 @@ SlideEditor.propTypes = {
   presentationId: PropTypes.string.isRequired,
   slide: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    elements: PropTypes.arrayOf(PropTypes.object),
+    elements: PropTypes.arrayOf(PropTypes.object).isRequired,
+    fontFamily: PropTypes.string,
+    background: PropTypes.shape({
+      style: PropTypes.oneOf(['solid', 'gradient', 'image']).isRequired,
+      color: PropTypes.string,
+      gradient: PropTypes.shape({
+        direction: PropTypes.string,
+        colors: PropTypes.arrayOf(PropTypes.string),
+      }),
+      image: PropTypes.string,
+      uploadedImage: PropTypes.string, // To handle uploaded images
+    }),
   }).isRequired,
   updateSlide: PropTypes.func.isRequired,
 };
