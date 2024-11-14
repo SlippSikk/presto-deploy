@@ -1,10 +1,11 @@
 // src/components/__tests__/PresentationCard.test.jsx
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PresentationCard from '../components/PresentationCard';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { describe, it, expect } from 'vitest';
+
+import { describe, it, expect, vi } from 'vitest';
 
 describe('PresentationCard Component', () => {
     const mockPresentation = {

@@ -38,4 +38,36 @@ describe('TextBlock Component', () => {
     // Ensure the content is properly escaped
     expect(textElement.innerHTML).toBe('&lt;img src=x onerror=alert(1)//&gt;');
   });
+
+  it('preserves whitespace in text content', () => {
+    const textWithWhitespace = 'Hello,\n  World!\tThis is a test.';
+    render(<TextBlock content={textWithWhitespace} fontSize={1} color="#000000" />);
+
+    const textElement = screen.getByText((content, element) => {
+      return (
+        element.tagName.toLowerCase() === 'p' &&
+        element.textContent === 'Hello,\n  World!\tThis is a test.'
+      );
+    });
+
+    expect(textElement).toBeInTheDocument();
+  });
+
+  it('does not allow text to overflow the container', () => {
+    const longText =
+      'This is a very long text that is intended to test whether the TextBlock component properly handles text overflow by wrapping the text within its container without spilling over.';
+    
+    const { container } = render(
+        <TextBlock content={longText} fontSize={1} color="#000000" />
+    );
+
+    const parentDiv = container.firstChild;
+    expect(parentDiv).toHaveStyle('overflow: hidden');
+    
+    // Additional assertion to check if text wraps (limited due to JSDOM limitations)
+    const textElement = screen.getByText(longText, { exact: false });
+    expect(textElement).toBeInTheDocument();
+    // Optionally, check for multiple lines by counting line breaks if applicable
+  });
+
 });
