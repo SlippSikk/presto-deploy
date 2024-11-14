@@ -5,13 +5,14 @@ import { Box, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
 
 /**
- * SlideThumbnail renders a miniature preview of a slide.
+ * SlideThumbnail renders a miniature preview of a slide with a numerical label.
  *
  * @param {object} props - React props.
  * @param {object} props.slide - The slide object to preview.
+ * @param {number} props.index - The numerical label of the slide.
  * @returns {JSX.Element} Miniature slide preview.
  */
-const SlideThumbnail = ({ slide }) => {
+const SlideThumbnail = ({ slide, index }) => {
   // Determine background styles
   const backgroundStyles = () => {
     switch (slide.background?.style) {
@@ -41,60 +42,45 @@ const SlideThumbnail = ({ slide }) => {
   return (
     <Box
       sx={{
-        width: '100%',
-        height: '100%',
-        borderRadius: 1,
+        width: '160px', // Adjusted width
+        height: '90px', // Adjusted height for a more rectangular shape
+        borderRadius: 2,
         overflow: 'hidden',
         position: 'relative',
         ...backgroundStyles(),
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
       }}
     >
-      {/* Display the first text element as a snippet */}
-      {slide.elements
-        .filter((el) => el.type === 'text')
-        .slice(0, 1)
-        .map((el) => (
-          <Typography
-            key={el.id}
-            variant="caption"
-            sx={{
-              color: el.color || '#000000',
-              fontFamily: slide.fontFamily || 'Arial',
-              padding: 1,
-              backgroundColor: 'rgba(255,255,255,0.7)',
-              borderRadius: 1,
-              maxWidth: '90%',
-              textAlign: 'center',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {el.content.length > 20 ? `${el.content.slice(0, 20)}...` : el.content}
-          </Typography>
-        ))}
-      {/* If no text elements, display slide number */}
-      {slide.elements.filter((el) => el.type === 'text').length === 0 && (
-        <Typography
-          variant="h6"
-          sx={{
-            color: '#000000',
-            fontFamily: slide.fontFamily || 'Arial',
-          }}
-        >
-          Slide
-        </Typography>
-      )}
+      {/* Numerical Label */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          color: '#ffffff',
+          borderRadius: '50%',
+          width: 24,
+          height: 24,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 12,
+          fontWeight: 'bold',
+        }}
+      >
+        {index}
+      </Box>
     </Box>
   );
 };
 
 SlideThumbnail.propTypes = {
   slide: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
 };
 
 export default SlideThumbnail;

@@ -5,6 +5,7 @@ import { getStore, setStore } from '../services/api';
 import { AuthContext } from './AuthContext';
 import PropTypes from 'prop-types';
 import defaultThumbnail from '../assets/default-thumbnail.jpg';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * StoreContext provides store data and functions to manage presentations and slides.
@@ -238,7 +239,7 @@ export const StoreProvider = ({ children }) => {
 
     // Create a new slide with the presentation's default background
     const newSlide = {
-      id: `slide-${Date.now()}`,
+      id: `slide-${uuidv4()}`, // Unique ID without special characters
       elements: [],
       fontFamily: presentation.defaultBackground.fontFamily || 'Arial',
       background: { ...presentation.defaultBackground },

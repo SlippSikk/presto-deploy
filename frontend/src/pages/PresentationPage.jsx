@@ -19,26 +19,22 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Edit, ArrowBack, ArrowForward } from '@mui/icons-material';
+import { Edit, ArrowBack } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideEditor from '../components/SlideEditor';
-import SlideNumber from '../components/SlideNumber'; // Import SlideNumber
-
-// Import react-beautiful-dnd components
+import SlideNumber from '../components/SlideNumber';
 import {
   DragDropContext,
   Droppable,
   Draggable,
 } from 'react-beautiful-dnd';
-
-// Import SlideThumbnail
 import SlideThumbnail from '../components/SlideThumbnail';
 
 const PresentationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams(); // Initialize useSearchParams
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     store,
@@ -50,7 +46,7 @@ const PresentationPage = () => {
     deleteSlide,
     reorderSlides,
   } = useContext(StoreContext);
-  
+
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditTitleDialog, setOpenEditTitleDialog] = useState(false);
@@ -58,7 +54,7 @@ const PresentationPage = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newThumbnailFile, setNewThumbnailFile] = useState(null);
   const [dialogError, setDialogError] = useState('');
-  const [openRearrangeDialog, setOpenRearrangeDialog] = useState(false); // New state for rearrange dialog
+  const [openRearrangeDialog, setOpenRearrangeDialog] = useState(false);
 
   const defaultThumbnail = '/assets/default-thumbnail.jpg';
   const presentation = store.presentations.find((p) => p.id === id);
@@ -93,6 +89,13 @@ const PresentationPage = () => {
   const slides = Array.isArray(presentation.slides) ? presentation.slides : [];
   const currentSlide =
     slides.length > 0 ? slides[currentSlideIndex] || slides[0] : { id: `slide-${Date.now()}`, elements: [], fontFamily: 'Arial' };
+
+  // Local state for rearranging slides
+  const [localSlides, setLocalSlides] = useState(slides);
+
+  useEffect(() => {
+    setLocalSlides(slides);
+  }, [slides]);
 
   /**
    * Handle adding a new slide
@@ -213,7 +216,7 @@ const PresentationPage = () => {
   /**
    * Handle drag end for rearranging slides
    */
-  const onDragEnd = async (result) => {
+  const onDragEnd = (result) => {
     const { destination, source } = result;
 
     // If no destination, do nothing
@@ -228,16 +231,19 @@ const PresentationPage = () => {
     }
 
     // Reorder slides array
-    const reorderedSlides = Array.from(slides);
+    const reorderedSlides = Array.from(localSlides);
     const [movedSlide] = reorderedSlides.splice(source.index, 1);
     reorderedSlides.splice(destination.index, 0, movedSlide);
 
-    // Persist the reordered slides to the store
-    try {
-      await reorderSlides(id, reorderedSlides);
-    } catch (err) {
+    // Update local state immediately
+    setLocalSlides(reorderedSlides);
+
+    // Persist the reordered slides to the store asynchronously
+    reorderSlides(id, reorderedSlides).catch(() => {
       setDialogError('Failed to reorder slides.');
-    }
+      // Optionally revert the local state if the update fails
+      setLocalSlides(slides);
+    });
   };
 
   return (
@@ -334,7 +340,7 @@ const PresentationPage = () => {
         <SlideNumber
           current={currentSlideIndex + 1}
           total={slides.length}
-          sx={{ position: 'absolute', bottom: 8, right: 16 }} // Position SlideNumber
+          sx={{ position: 'absolute', bottom: 8, right: 16 }}
         />
       </Box>
 
@@ -390,7 +396,7 @@ const PresentationPage = () => {
                     padding: 2,
                   }}
                 >
-                  {slides.map((slide, index) => (
+                  {localSlides.map((slide, index) => (
                     <Draggable key={slide.id} draggableId={slide.id} index={index}>
                       {(provided, snapshot) => (
                         <Box
@@ -398,31 +404,27 @@ const PresentationPage = () => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           sx={{
-                            width: 150, // Increased width for better preview visibility
-                            height: 100, // Increased height
+                            width: 150,
+                            height: 100,
                             marginRight: 2,
                             padding: 1,
                             border: '2px solid #1976d2',
                             borderRadius: 1,
-                            backgroundColor: snapshot.isDragging
-                              ? '#e3f2fd'
-                              : '#ffffff',
+                            backgroundColor: snapshot.isDragging ? '#e3f2fd' : '#ffffff',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'grab',
                             userSelect: 'none',
-                            boxShadow: snapshot.isDragging
-                              ? '0 4px 8px rgba(0,0,0,0.2)'
-                              : 'none',
+                            boxShadow: snapshot.isDragging ? '0 4px 8px rgba(0,0,0,0.2)' : 'none',
                             transition: 'background-color 0.2s, box-shadow 0.2s',
                             '&:hover': {
                               borderColor: '#115293',
                             },
                           }}
                         >
-                          {/* Slide Thumbnail */}
-                          <SlideThumbnail slide={slide} />
+                          {/* Slide Thumbnail with Index */}
+                          <SlideThumbnail slide={slide} index={index + 1} />
                         </Box>
                       )}
                     </Draggable>
