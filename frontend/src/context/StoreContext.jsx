@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 import { getStore, setStore } from '../services/api';
 import { AuthContext } from './AuthContext';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ export const StoreContext = createContext();
  */
 export const StoreProvider = ({ children }) => {
   const { isAuthenticated, loading: authLoading, auth } = useContext(AuthContext);
+  console.log(authLoading, auth);
   const [store, setStoreState] = useState({ presentations: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

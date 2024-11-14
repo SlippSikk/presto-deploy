@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Container,
@@ -12,10 +12,6 @@ import {
   Box,
   Alert,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import { Edit, ArrowBack } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
@@ -103,7 +99,7 @@ const PresentationPage = () => {
       const newSlideIndex = slides.length; // Since a new slide is appended
       setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
     } catch (err) {
-      setDialogError('Failed to add slide');
+      setDialogError(`Failed to add slide ${err}`);
     }
   };
 
@@ -134,6 +130,7 @@ const PresentationPage = () => {
       setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
     } catch (err) {
       setDialogError('There is only 1 slide in this presentation. Did you want to delete the presentation instead?');
+      console.log(err);
     }
   };
 
@@ -146,6 +143,7 @@ const PresentationPage = () => {
       navigate('/dashboard');
     } catch (err) {
       setDialogError('Failed to delete presentation.');
+      console.log(err);
     }
   };
 
@@ -165,6 +163,7 @@ const PresentationPage = () => {
       setDialogError('');
     } catch (err) {
       setDialogError('Failed to update title');
+      console.log(err);
     }
   };
 
@@ -186,6 +185,7 @@ const PresentationPage = () => {
           setDialogError('');
         } catch (err) {
           setDialogError('Failed to update thumbnail');
+          console.log(err);
         }
       };
       reader.readAsDataURL(newThumbnailFile);
@@ -235,6 +235,7 @@ const PresentationPage = () => {
       await reorderSlides(id, reorderedSlides);
     } catch (err) {
       setDialogError('Failed to reorder slides.');
+      console.log(err);
     }
   };
 

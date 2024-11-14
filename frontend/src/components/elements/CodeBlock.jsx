@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Box } from '@mui/material';
 import { LightAsync as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -32,7 +32,6 @@ const CodeBlock = ({ code, fontSize, language: explicitLanguage }) => {
       sx={{
         width: '100%',
         height: '100%',
-        overflow: 'auto', // Allow scrolling if content overflows
         fontSize: `${fontSize}em`,
         boxSizing: 'border-box',
         backgroundColor: '#f6f8fa', // Optional: match the github theme background

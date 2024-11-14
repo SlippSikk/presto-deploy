@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import {
   Container,
   Typography,
@@ -56,6 +56,7 @@ const Dashboard = () => {
       setDialogError('');
     } catch (err) {
       setDialogError('Failed to create presentation');
+      console.log(err);
     }
   };
 
