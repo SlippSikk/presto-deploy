@@ -135,7 +135,7 @@ const PresentationPage = () => {
 
       setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
     } catch (err) {
-      setDialogError('Failed to delete slide.');
+      setDialogError('There is only 1 slide in this presentation. Did you want to delete the presentation instead?');
     }
   };
 
@@ -287,33 +287,6 @@ const PresentationPage = () => {
         <img src={currentThumbnail} alt="Thumbnail Preview" style={{ width: '100px', height: 'auto' }} />
       </Box>
 
-      {/* Transition Type Section */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Transition Type
-        </Typography>
-        <FormControl sx={{ minWidth: 200 }} size="small">
-          <InputLabel id="transition-type-select-label">Transition</InputLabel>
-          <Select
-            labelId="transition-type-select-label"
-            id="transition-type-select"
-            value={presentation.transitionType || 'none'}
-            label="Transition"
-            onChange={(e) => {
-              const newTransitionType = e.target.value;
-              // Implement a function to update the transition type in the store
-              // For example:
-              // updateTransitionType(id, newTransitionType);
-            }}
-            aria-label="Transition Type Selector"
-          >
-            <MenuItem value="none">None</MenuItem>
-            <MenuItem value="fade">Fade</MenuItem>
-            <MenuItem value="slideLeft">Slide Left</MenuItem>
-            <MenuItem value="slideRight">Slide Right</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
 
       {/* Error Alerts */}
       {error && (
