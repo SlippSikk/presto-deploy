@@ -174,5 +174,58 @@ describe('AddTextModal Component', () => {
     });
   });
 
+  it('allows submission with boundary values', async () => {
+    const { onAdd, onClose } = setup();
 
+    // Use data-testid to interact with inputs
+    await userEvent.type(screen.getByTestId('content-input'), 'Boundary Test');
+    await userEvent.clear(screen.getByTestId('font-size-input'));
+    await userEvent.type(screen.getByTestId('font-size-input'), '0.5'); // Minimum allowed
+    await userEvent.clear(screen.getByTestId('color-input'));
+    await userEvent.type(screen.getByTestId('color-input'), '#FFF'); // 3-digit HEX
+    await userEvent.clear(screen.getByTestId('width-percentage-input'));
+    await userEvent.type(screen.getByTestId('width-percentage-input'), '1'); // Minimum allowed
+    await userEvent.clear(screen.getByTestId('height-percentage-input'));
+    await userEvent.type(screen.getByTestId('height-percentage-input'), '100'); // Maximum allowed
+  
+    // Click the Add button
+    await userEvent.click(screen.getByRole('button', { name: /Add/i }));
+  
+    // Assert the submission
+    await waitFor(() => {
+      expect(onAdd).toHaveBeenCalledWith('text', {
+        content: 'Boundary Test',
+        fontSize: 0.5,
+        color: '#FFF',
+        size: { width: 1, height: 100 },
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('supports keyboard navigation and accessibility', async () => {
+    setup();
+
+    // Navigate through elements with Tab
+    await userEvent.tab();
+    expect(screen.getByTestId('content-input')).toHaveFocus();
+
+    await userEvent.tab();
+    expect(screen.getByTestId('font-size-input')).toHaveFocus();
+
+    await userEvent.tab();
+    expect(screen.getByTestId('color-input')).toHaveFocus();
+
+    await userEvent.tab();
+    expect(screen.getByTestId('width-percentage-input')).toHaveFocus();
+
+    await userEvent.tab();
+    expect(screen.getByTestId('height-percentage-input')).toHaveFocus();
+
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: /Cancel/i })).toHaveFocus();
+
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: /Add/i })).toHaveFocus();
+  });
 });
