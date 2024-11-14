@@ -23,8 +23,6 @@ const Navbar = () => {
         {/* Application Logo or Name */}
         <Typography
           variant="h6"
-          component={Link}
-          to="/"
           sx={{
             flexGrow: 1,
             textDecoration: 'none',
