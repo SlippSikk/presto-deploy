@@ -16,5 +16,5 @@
 - White space is used effectively to reduce cognitive load and associate elements with each other
 - Usage of aria labels for increased accessibility usability
 - Presentation cards on dashboard provide user feedback when hovering over them providing good affordance.
-
+- Favouriting presentations provides users ease in quickly identifying important presentations. 
 
