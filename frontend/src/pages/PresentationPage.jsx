@@ -14,12 +14,12 @@ import {
   Box,
   Alert,
   IconButton,
-  FormControl,      // Added
-  InputLabel,       // Added
-  Select,            // Added
-  MenuItem,          // Added
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
-import { Edit, ArrowBack, ArrowForward } from '@mui/icons-material';
+import { Edit, ArrowBack } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideEditor from '../components/SlideEditor';
@@ -373,7 +373,7 @@ const PresentationPage = () => {
         open={openRearrangeDialog}
         onClose={() => setOpenRearrangeDialog(false)}
         fullWidth
-        maxWidth="md"
+        maxWidth="lg" // Increased to accommodate multiple rows
       >
         <DialogTitle>Rearrange Slides</DialogTitle>
         <DialogContent>
@@ -385,8 +385,9 @@ const PresentationPage = () => {
                   {...provided.droppableProps}
                   sx={{
                     display: 'flex',
-                    overflowX: 'auto',
+                    flexWrap: 'wrap', // Allow slides to wrap into multiple rows
                     padding: 2,
+                    justifyContent: 'flex-start', // Align items to the start
                   }}
                 >
                   {slides.map((slide, index) => (
@@ -397,9 +398,9 @@ const PresentationPage = () => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           sx={{
-                            width: 160, // Fixed width
-                            height: 90, // Fixed height
-                            marginRight: 2,
+                            width: 120, // Reduced width
+                            height: 70, // Reduced height
+                            margin: 1, // Uniform margin around slides
                             padding: 1,
                             border: '2px solid #1976d2',
                             borderRadius: 2,

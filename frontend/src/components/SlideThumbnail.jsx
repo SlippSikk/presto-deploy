@@ -1,7 +1,7 @@
 // src/components/SlideThumbnail.jsx
 
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import PropTypes from 'prop-types';
 
 /**
@@ -42,8 +42,8 @@ const SlideThumbnail = ({ slide, index }) => {
   return (
     <Box
       sx={{
-        width: '160px', // Fixed width
-        height: '90px', // Fixed height for a more rectangular shape
+        width: '120px', // Reduced width
+        height: '70px', // Reduced height for a more rectangular shape
         borderRadius: 2,
         overflow: 'hidden',
         position: 'relative',
@@ -58,17 +58,17 @@ const SlideThumbnail = ({ slide, index }) => {
       <Box
         sx={{
           position: 'absolute',
-          top: 8,
-          left: 8,
+          top: 6, // Adjusted for smaller size
+          left: 6, // Adjusted for smaller size
           backgroundColor: 'rgba(0,0,0,0.6)',
           color: '#ffffff',
           borderRadius: '50%',
-          width: 24,
-          height: 24,
+          width: 20, // Adjusted size
+          height: 20, // Adjusted size
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 12,
+          fontSize: 10, // Adjusted font size
           fontWeight: 'bold',
         }}
       >
