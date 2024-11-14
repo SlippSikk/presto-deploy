@@ -8,7 +8,6 @@ import PresentationPage from './pages/PresentationPage';
 import PresentationPreview from './components/PresentationPreview';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
-import { ThemeProvider, CssBaseline } from '@mui/material/styles';
 import CustomThemeProvider from './context/ThemeContext';
 
 /**
@@ -18,44 +17,39 @@ import CustomThemeProvider from './context/ThemeContext';
 const App = () => {
   return (
     <CustomThemeProvider>
-      {/* Apply the theme using ThemeProvider */}
-      <ThemeProvider>
-        {/* CssBaseline kickstarts an elegant, consistent, and simple baseline to build upon. */}
-        <CssBaseline />
-        <Navbar />
-        <Routes>
-          {/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+      <Navbar />
+      <Routes>
+        {/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/presentation/:id"
-            element={
-              <PrivateRoute>
-                <PresentationPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/presentation/:id/preview"
-            element={
-              <PrivateRoute>
-                <PresentationPreview />
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </ThemeProvider>
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/presentation/:id"
+          element={
+            <PrivateRoute>
+              <PresentationPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/presentation/:id/preview"
+          element={
+            <PrivateRoute>
+              <PresentationPreview />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
     </CustomThemeProvider>
   );
 };

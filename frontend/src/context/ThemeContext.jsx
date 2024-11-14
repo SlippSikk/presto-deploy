@@ -1,5 +1,5 @@
 import React, { createContext, useMemo, useState, useEffect } from 'react';
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { getDesignTokens } from '../theme';
 import PropTypes from 'prop-types';
 
@@ -51,7 +51,9 @@ export const CustomThemeProvider = ({ children }) => {
 
   return (
     <ThemeContext.Provider value={value}>
-      {children}
+      <MuiThemeProvider theme={theme}>
+        {children}
+      </MuiThemeProvider>
     </ThemeContext.Provider>
   );
 };

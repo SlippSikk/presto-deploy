@@ -1,5 +1,3 @@
-// src/pages/Dashboard.jsx
-
 import React, { useState, useContext } from 'react';
 import {
   Container,
@@ -69,6 +67,7 @@ const Dashboard = () => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '80vh',
+          backgroundColor: 'background.default', // Ensure background adapts to theme
         }}
       >
         <CircularProgress />
@@ -84,11 +83,11 @@ const Dashboard = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom color="text.primary">
         Dashboard
       </Typography>
       {error && (
-        <Alert severity="error" onClose={() => {}}>
+        <Alert severity="error" onClose={() => {}} sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -117,7 +116,9 @@ const Dashboard = () => {
           ))
         ) : (
           <Grid item xs={12}>
-            <Typography variant="body1">No presentations available.</Typography>
+            <Typography variant="body1" color="text.secondary">
+              No presentations available.
+            </Typography>
           </Grid>
         )}
       </Grid>
@@ -127,7 +128,7 @@ const Dashboard = () => {
         <DialogTitle>Create New Presentation</DialogTitle>
         <DialogContent>
           {dialogError && (
-            <Alert severity="error" onClose={() => setDialogError('')}>
+            <Alert severity="error" onClose={() => setDialogError('')} sx={{ mb: 2 }}>
               {dialogError}
             </Alert>
           )}
@@ -144,8 +145,8 @@ const Dashboard = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreatePresentation} variant="contained" color="primary">
+          <Button onClick={() => setOpen(false)} aria-label="Cancel Creating Presentation">Cancel</Button>
+          <Button onClick={handleCreatePresentation} variant="contained" color="primary" aria-label="Create Presentation">
             Create
           </Button>
         </DialogActions>

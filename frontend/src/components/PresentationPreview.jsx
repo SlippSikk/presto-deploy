@@ -115,7 +115,7 @@ const PresentationPreview = () => {
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: 'background.default',
         margin: 0,
         padding: 0,
       }}
@@ -155,7 +155,7 @@ const PresentationPreview = () => {
       </style>
 
       {loading ? (
-        <Typography variant="h4" color="black">
+        <Typography variant="h4" color="text.primary">
           Loading presentation preview...
         </Typography>
       ) : error ? (
@@ -163,15 +163,15 @@ const PresentationPreview = () => {
           Error loading presentation: {error}
         </Typography>
       ) : !presentation ? (
-        <Typography variant="h4" color="black">
+        <Typography variant="h4" color="text.primary">
           Presentation not found.
         </Typography>
       ) : slides.length === 0 ? (
-        <Typography variant="h6" color="textSecondary">
+        <Typography variant="h6" color="text.secondary">
           No slides available.
         </Typography>
       ) : currentSlideIndex === null ? (
-        <Typography variant="h6" color="textSecondary">
+        <Typography variant="h6" color="text.secondary">
           Loading slide...
         </Typography>
       ) : (
@@ -186,11 +186,12 @@ const PresentationPreview = () => {
               maxHeight: '720px',
               position: 'relative',
               overflow: 'hidden',
-              border: '5px solid black',
+              border: '5px solid',
+              borderColor: 'primary.main',
               backgroundColor:
                 slides[currentSlideIndex]?.background?.style === 'solid'
                   ? slides[currentSlideIndex].background.color
-                  : '#ffffff',
+                  : 'background.paper',
               backgroundImage:
                 slides[currentSlideIndex]?.background?.style === 'gradient'
                   ? `linear-gradient(${slides[currentSlideIndex].background.gradient.direction}, ${slides[currentSlideIndex].background.gradient.colors.join(
@@ -201,7 +202,7 @@ const PresentationPreview = () => {
                   : 'none',
               backgroundSize: 'cover',
               backgroundRepeat: 'no-repeat',
-              boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
+              boxShadow: 3,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -230,6 +231,7 @@ const PresentationPreview = () => {
                       overflowWrap: 'break-word',
                       whiteSpace: 'pre-wrap',
                       width: '100%', // Ensure Typography spans the full width
+                      // Use theme's text color if needed
                     }}
                   >
                     {element.content}
@@ -253,7 +255,7 @@ const PresentationPreview = () => {
                       width: '100%',
                       height: '100%',
                       overflow: 'hidden',
-                      backgroundColor: '#f6f8fa',
+                      backgroundColor: 'background.paper',
                       padding: '10px',
                       boxSizing: 'border-box',
                     }}
@@ -281,7 +283,7 @@ const PresentationPreview = () => {
               onClick={goToPreviousSlide}
               disabled={currentSlideIndex === 0}
               sx={{
-                color: 'black',
+                color: 'text.primary',
                 '&:disabled': { opacity: 0.5 },
               }}
               aria-label="Previous Slide"
@@ -291,7 +293,7 @@ const PresentationPreview = () => {
             <Typography
               variant="h6"
               sx={{
-                color: 'black',
+                color: 'text.primary',
                 textAlign: 'center',
                 mx: 2, // Add horizontal margin
               }}
@@ -302,7 +304,7 @@ const PresentationPreview = () => {
               onClick={goToNextSlide}
               disabled={currentSlideIndex === slides.length - 1}
               sx={{
-                color: 'black',
+                color: 'text.primary',
                 '&:disabled': { opacity: 0.5 },
               }}
               aria-label="Next Slide"
