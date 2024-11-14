@@ -1,14 +1,17 @@
+// src/components/PresentationPreview.jsx
+
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import CodeBlock from './elements/CodeBlock';
-import VideoBlock from './elements/VideoBlock'; // Import VideoBlock
+import VideoBlock from './elements/VideoBlock';
 
 const PresentationPreview = () => {
   const { id } = useParams();
   const { store, loading, error } = useContext(StoreContext);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [presentation, setPresentation] = useState(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -22,6 +25,32 @@ const PresentationPreview = () => {
 
   const slides = presentation?.slides || [];
 
+  // Initialize slide index from URL once slides are loaded
+  useEffect(() => {
+    if (slides.length > 0) {
+      const slideParam = parseInt(searchParams.get('slide'), 10);
+      if (!isNaN(slideParam) && slideParam >= 1 && slideParam <= slides.length) {
+        setCurrentSlideIndex(slideParam - 1); // Convert to 0-based index
+      } else {
+        // If invalid or not present, default to first slide and update URL
+        setCurrentSlideIndex(0);
+        // Only set searchParams if the 'slide' parameter is missing or invalid
+        if (!slideParam || slideParam < 1 || slideParam > slides.length) {
+          setSearchParams({ slide: 1 }, { replace: true });
+        }
+      }
+    }
+  }, [searchParams, slides.length, slides, setSearchParams]);
+
+  // Update URL when slide index changes
+  useEffect(() => {
+    const currentSlideNumber = currentSlideIndex + 1;
+    const slideParam = parseInt(searchParams.get('slide'), 10);
+    if (slideParam !== currentSlideNumber) {
+      setSearchParams({ slide: currentSlideNumber }, { replace: true });
+    }
+  }, [currentSlideIndex, setSearchParams, searchParams]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowRight') goToNextSlide();
@@ -33,15 +62,15 @@ const PresentationPreview = () => {
   }, [currentSlideIndex, slides.length]);
 
   const goToNextSlide = () => {
-    setCurrentSlideIndex((prevIndex) =>
-      prevIndex < slides.length - 1 ? prevIndex + 1 : prevIndex
-    );
+    if (currentSlideIndex < slides.length - 1) {
+      setCurrentSlideIndex(currentSlideIndex + 1);
+    }
   };
 
   const goToPreviousSlide = () => {
-    setCurrentSlideIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : prevIndex
-    );
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex(currentSlideIndex - 1);
+    }
   };
 
   return (
@@ -80,13 +109,17 @@ const PresentationPreview = () => {
         <Typography variant="h4" color="black">
           Presentation not found.
         </Typography>
+      ) : slides.length === 0 ? (
+        <Typography variant="h6" color="textSecondary">
+          No slides available.
+        </Typography>
       ) : (
         <>
           {/* Slide Canvas */}
           <Box
             sx={{
               width: '90vw',
-              height: '50vw',
+              height: '50vw', // Maintain 16:9 aspect ratio
               maxWidth: '1280px',
               maxHeight: '720px',
               position: 'relative',
@@ -206,6 +239,7 @@ const PresentationPreview = () => {
               sx={{
                 color: 'black',
                 textAlign: 'center',
+                mx: 2, // Add horizontal margin
               }}
             >
               {`${currentSlideIndex + 1} / ${slides.length}`}

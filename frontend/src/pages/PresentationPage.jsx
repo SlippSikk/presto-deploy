@@ -1,7 +1,7 @@
 // src/pages/PresentationPage.jsx
 
 import React, { useState, useContext, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -15,7 +15,7 @@ import {
   Alert,
   IconButton,
 } from '@mui/material';
-import { Edit, ArrowBack } from '@mui/icons-material';
+import { Edit, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideEditor from '../components/SlideEditor';
@@ -24,6 +24,8 @@ import SlideNumber from '../components/SlideNumber'; // Import SlideNumber
 const PresentationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams(); // Initialize useSearchParams
+
   const {
     store,
     error,
@@ -44,6 +46,33 @@ const PresentationPage = () => {
   const defaultThumbnail = '/assets/default-thumbnail.jpg';
   const presentation = store.presentations.find((p) => p.id === id);
 
+  // Effect to set currentSlideIndex based on URL's 'slide' query parameter
+  useEffect(() => {
+    if (presentation && Array.isArray(presentation.slides)) {
+      const slideParam = parseInt(searchParams.get('slide'), 10);
+      if (!isNaN(slideParam) && slideParam >= 1 && slideParam <= presentation.slides.length) {
+        setCurrentSlideIndex(slideParam - 1); // Convert to 0-based index
+      } else {
+        // If 'slide' param is invalid or missing, default to first slide and update URL
+        setCurrentSlideIndex(0);
+        if (!slideParam || slideParam < 1 || slideParam > presentation.slides.length) {
+          setSearchParams({ slide: 1 }, { replace: true });
+        }
+      }
+    }
+  }, [presentation, searchParams, setSearchParams]);
+
+  // Effect to update URL when currentSlideIndex changes
+  useEffect(() => {
+    if (presentation && Array.isArray(presentation.slides)) {
+      const desiredSlideParam = currentSlideIndex + 1;
+      const currentSlideParam = parseInt(searchParams.get('slide'), 10);
+      if (currentSlideParam !== desiredSlideParam) {
+        setSearchParams({ slide: desiredSlideParam }, { replace: true });
+      }
+    }
+  }, [currentSlideIndex, presentation, searchParams, setSearchParams]);
+
   if (!presentation) {
     return (
       <Container>
@@ -53,10 +82,9 @@ const PresentationPage = () => {
   }
 
   const currentThumbnail = presentation.thumbnail || defaultThumbnail;
+  const slides = Array.isArray(presentation.slides) ? presentation.slides : [];
   const currentSlide =
-    Array.isArray(presentation.slides) && presentation.slides.length > 0
-      ? presentation.slides[currentSlideIndex] || presentation.slides[0]
-      : { id: `slide-${Date.now()}`, elements: [], fontFamily: 'Arial' }; // Ensure fontFamily is present
+    slides.length > 0 ? slides[currentSlideIndex] || slides[0] : { id: `slide-${Date.now()}`, elements: [], fontFamily: 'Arial' };
 
   const handleDeletePresentation = async () => {
     try {
@@ -114,7 +142,7 @@ const PresentationPage = () => {
     };
     try {
       await addSlide(id, newSlide);
-      setCurrentSlideIndex(presentation.slides.length);
+      setCurrentSlideIndex(slides.length); // New slide index
     } catch (err) {
       setDialogError('Failed to add slide');
     }
@@ -186,6 +214,7 @@ const PresentationPage = () => {
         <img src={currentThumbnail} alt="Thumbnail Preview" style={{ width: '100px', height: 'auto' }} />
       </Box>
 
+      {/* Error Alerts */}
       {error && (
         <Alert severity="error" onClose={() => {}}>
           {error}
@@ -202,7 +231,7 @@ const PresentationPage = () => {
         <SlideEditor presentationId={id} slide={currentSlide} updateSlide={updateSlideHandler} />
         <SlideNumber
           current={currentSlideIndex + 1}
-          total={Array.isArray(presentation.slides) ? presentation.slides.length : 0}
+          total={slides.length}
           sx={{ position: 'absolute', bottom: 8, right: 16 }} // Position SlideNumber
         />
       </Box>
@@ -210,9 +239,17 @@ const PresentationPage = () => {
       {/* Slide Controls */}
       <SlideControls
         currentSlideIndex={currentSlideIndex}
-        totalSlides={Array.isArray(presentation.slides) ? presentation.slides.length : 0}
-        onPrevious={() => setCurrentSlideIndex(currentSlideIndex - 1)}
-        onNext={() => setCurrentSlideIndex(currentSlideIndex + 1)}
+        totalSlides={slides.length}
+        onPrevious={() => {
+          if (currentSlideIndex > 0) {
+            setCurrentSlideIndex((prev) => prev - 1);
+          }
+        }}
+        onNext={() => {
+          if (currentSlideIndex < slides.length - 1) {
+            setCurrentSlideIndex((prev) => prev + 1);
+          }
+        }}
       />
 
       {/* Add and Delete Slide Buttons */}
