@@ -1,5 +1,3 @@
-// src/components/elements/CodeBlock.jsx
-
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Box } from '@mui/material';

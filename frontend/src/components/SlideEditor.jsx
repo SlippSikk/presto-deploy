@@ -1,5 +1,3 @@
-// src/components/SlideEditor.jsx
-
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {

@@ -1,5 +1,3 @@
-// src/components/modals/DefaultBackgroundPickerModal.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import {

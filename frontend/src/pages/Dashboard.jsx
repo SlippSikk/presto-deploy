@@ -1,5 +1,3 @@
-// src/pages/Dashboard.jsx
-
 import React, { useState, useContext } from 'react';
 import {
   Container,

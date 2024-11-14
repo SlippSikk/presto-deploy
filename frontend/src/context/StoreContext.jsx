@@ -1,5 +1,3 @@
-// src/context/StoreContext.jsx
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { getStore, setStore } from '../services/api';
 import { AuthContext } from './AuthContext';

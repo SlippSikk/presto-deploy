@@ -1,5 +1,3 @@
-// src/components/PresentationPreview.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';

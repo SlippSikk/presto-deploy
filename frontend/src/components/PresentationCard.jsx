@@ -1,5 +1,3 @@
-// src/components/PresentationCard.jsx
-
 import React, { useContext } from 'react';
 import {
   Card,
