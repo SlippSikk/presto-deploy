@@ -328,7 +328,7 @@ const PresentationPage = () => {
       />
 
       {/* Add, Delete, and Rearrange Slide Buttons */}
-      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ mt: 2, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Button variant="contained" onClick={handleAddSlide}>
           + New Slide
         </Button>
