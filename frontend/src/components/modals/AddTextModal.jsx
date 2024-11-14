@@ -54,6 +54,7 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               required
+              inputProps={{ "data-testid": "content-input" }}
               aria-label="Text Content"
             />
           </Grid>
@@ -61,7 +62,7 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
             <TextField
               label="Font Size (em)"
               type="number"
-              inputProps={{ step: 0.1, min: 0.5, max: 5 }}
+              inputProps={{ step: 0.1, min: 0.5, max: 5, "data-testid": "font-size-input" }}
               fullWidth
               value={fontSize}
               onChange={(e) => setFontSize(parseFloat(e.target.value))}
@@ -72,6 +73,7 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
             <TextField
               label="Color (HEX)"
               type="text"
+              inputProps={{ "data-testid": "color-input" }}
               fullWidth
               value={color}
               onChange={(e) => setColor(e.target.value)}
@@ -83,9 +85,9 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
             <TextField
               label="Width (%)"
               type="number"
-              inputProps={{ min: 1, max: 100 }}
+              inputProps={{ min: 1, max: 100, "data-testid": "width-percentage-input"}}
               fullWidth
-              value={sizeWidth}
+              value={sizeWidth}v
               onChange={(e) => setSizeWidth(parseInt(e.target.value, 10))}
               aria-label="Width Percentage"
             />
@@ -94,7 +96,7 @@ const AddTextModal = ({ open, onClose, onAdd }) => {
             <TextField
               label="Height (%)"
               type="number"
-              inputProps={{ min: 1, max: 100 }}
+              inputProps={{ min: 1, max: 100, "data-testid": "height-percentage-input" }}
               fullWidth
               value={sizeHeight}
               onChange={(e) => setSizeHeight(parseInt(e.target.value, 10))}
