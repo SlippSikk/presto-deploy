@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import {
   Container,
@@ -35,11 +35,24 @@ const RegisterPage = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
-      <Typography variant="h4" gutterBottom>
+    <Container
+      maxWidth="sm"
+      sx={{
+        mt: 8,
+        backgroundColor: 'common.white', // Set form background to white
+        p: 4,
+        borderRadius: 2,
+        boxShadow: 3,
+      }}
+    >
+      <Typography variant="h4" gutterBottom color="text.primary">
         Register
       </Typography>
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField
           label="Name"
@@ -50,6 +63,21 @@ const RegisterPage = () => {
           margin="normal"
           value={form.name}
           onChange={handleChange}
+          aria-label="Name"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <TextField
           label="Email"
@@ -60,6 +88,21 @@ const RegisterPage = () => {
           margin="normal"
           value={form.email}
           onChange={handleChange}
+          aria-label="Email"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <TextField
           label="Password"
@@ -70,6 +113,21 @@ const RegisterPage = () => {
           margin="normal"
           value={form.password}
           onChange={handleChange}
+          aria-label="Password"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <TextField
           label="Confirm Password"
@@ -80,9 +138,24 @@ const RegisterPage = () => {
           margin="normal"
           value={form.confirmPassword}
           onChange={handleChange}
+          aria-label="Confirm Password"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <Box sx={{ mt: 3 }}>
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button type="submit" variant="contained" color="primary" fullWidth aria-label="Register">
             Register
           </Button>
         </Box>

@@ -1,0 +1,11 @@
+- Added 5 fonts to be changed
+- Multicolour (Multiple colour blends using "Add Color" button for gradients) background gradient
+- Gradient direction options
+- Colour picker tool for gradients
+- Multiple transitions options
+- Each slide can have its own unique transition
+- Saves input content for adding components (text, image, video and code) so the data is saved if user accidentally closes the overlay.
+- When rearranging slides, display a preview of each slide so user knows exactly which slide they are moving
+- Presentation preview has the ability to move between slides using arrow keys
+- Implemented 'Favouriting' presentations
+- Implemented Darkmode

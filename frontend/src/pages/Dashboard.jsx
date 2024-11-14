@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import {
   Container,
   Typography,
@@ -46,6 +46,7 @@ const Dashboard = () => {
       thumbnail: '', // Placeholder; can be updated later
       description: '',
       slides: [],
+      favorited: false, // Initialize favorited to false
     };
 
     try {
@@ -55,6 +56,7 @@ const Dashboard = () => {
       setDialogError('');
     } catch (err) {
       setDialogError('Failed to create presentation');
+      console.log(err);
     }
   };
 
@@ -66,6 +68,7 @@ const Dashboard = () => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '80vh',
+          backgroundColor: 'background.default', // Ensure background adapts to theme
         }}
       >
         <CircularProgress />
@@ -73,13 +76,19 @@ const Dashboard = () => {
     );
   }
 
+  // Sort presentations: favorited first
+  const sortedPresentations = [...store.presentations].sort((a, b) => {
+    if (a.favorited === b.favorited) return 0;
+    return a.favorited ? -1 : 1;
+  });
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom color="text.primary">
         Dashboard
       </Typography>
       {error && (
-        <Alert severity="error" onClose={() => {}}>
+        <Alert severity="error" onClose={() => {}} sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -88,12 +97,13 @@ const Dashboard = () => {
         color="primary"
         onClick={() => setOpen(true)}
         sx={{ mb: 3 }}
+        aria-label="Create New Presentation"
       >
         New Presentation
       </Button>
       <Grid container spacing={3}>
-        {store.presentations.length > 0 ? (
-          store.presentations.map((presentation) => (
+        {sortedPresentations.length > 0 ? (
+          sortedPresentations.map((presentation) => (
             <Grid
               item
               xs={12}
@@ -108,17 +118,19 @@ const Dashboard = () => {
           ))
         ) : (
           <Grid item xs={12}>
-            <Typography variant="body1">No presentations available.</Typography>
+            <Typography variant="body1" color="text.secondary">
+              No presentations available.
+            </Typography>
           </Grid>
         )}
       </Grid>
 
       {/* Create Presentation Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Create New Presentation</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="create-presentation-dialog">
+        <DialogTitle id="create-presentation-dialog">Create New Presentation</DialogTitle>
         <DialogContent>
           {dialogError && (
-            <Alert severity="error" onClose={() => setDialogError('')}>
+            <Alert severity="error" onClose={() => setDialogError('')} sx={{ mb: 2 }}>
               {dialogError}
             </Alert>
           )}
@@ -135,8 +147,8 @@ const Dashboard = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreatePresentation} variant="contained" color="primary">
+          <Button onClick={() => setOpen(false)} aria-label="Cancel Creating Presentation">Cancel</Button>
+          <Button onClick={handleCreatePresentation} variant="contained" color="primary" aria-label="Create Presentation">
             Create
           </Button>
         </DialogActions>
