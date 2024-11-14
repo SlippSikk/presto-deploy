@@ -1,3 +1,20 @@
 - Removed white background for textblocks when previewing -> Imitates textbox behaviour on slides.com and microsoft's powerpoint
 - Added white background for code blocks when previewing -> Added visibility and imitates other
 - Saves input content for adding components (text, image, video and code) so the data is saved if user accidentally closes the overlay.
+- Application is navigable with keyboard -> accessibility feature for no mouse
+- Dark mode icon is recognisable and intuitive
+- Colour scheme is conistent providing an experience that reduces cognitive overload
+- Slides allow users to choose multiple fonts giving users more options allowing for a more satisfying experience
+- Tools are grouped together and placed above the slide. This provides an association between the slides and the tools
+- Editing tools use consistent colour to show association increasing user efficiency
+- Usage of icons to denote editing on presentaion page such as pencil icon for Thumbnail and brush for background. This demonstrates recognition rather than recall and provides an overall more intuitive and efficient experience
+- Multicolour (Multiple colour blends using "Add Color" button for gradients) background gradient
+- Gradient direction options allow for users to have more freedom in the background design
+- Colour picker tool for gradients for more user freedom
+- Multiple transitions options
+- Each slide can have its own unique transition
+- White space is used effectively to reduce cognitive load and associate elements with each other
+- Usage of aria labels for increased accessibility usability
+- Presentation cards on dashboard provide user feedback when hovering over them providing good affordance.
+- Favouriting presentations provides users ease in quickly identifying important presentations. 
+

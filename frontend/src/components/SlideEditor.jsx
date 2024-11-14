@@ -450,7 +450,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       <Stack direction="column" spacing={2} sx={{ mb: 2 }} alignItems="flex-start">
         {/* Default Background Button */}
         <IconButton
-          color="secondary"
+          color="primary"
           onClick={() => setOpenDefaultBackgroundModal(true)}
           aria-label="Set Default Background"
         >
@@ -471,7 +471,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
 
             {/* Current Slide Background Picker Button */}
             <IconButton
-              color="secondary"
+              color="primary"
               onClick={() => setOpenBackgroundModal(true)}
               aria-label="Set Current Slide Background"
             >

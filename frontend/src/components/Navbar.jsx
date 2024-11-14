@@ -20,11 +20,8 @@ const Navbar = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        {/* Application Logo or Name */}
         <Typography
           variant="h6"
-          component={Link}
-          to="/"
           sx={{
             flexGrow: 1,
             textDecoration: 'none',
