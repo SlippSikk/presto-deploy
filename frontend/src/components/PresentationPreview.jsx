@@ -64,6 +64,24 @@ const PresentationPreview = () => {
     }
   };
 
+  // Listen to keydown events for navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowRight') {
+        goToNextSlide();
+      } else if (event.key === 'ArrowLeft') {
+        goToPreviousSlide();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentSlideIndex, slides]); // Ensure the effect updates when slides or index change
+
   // Transitions
   const getTransitionStyle = (transitionType) => {
     switch (transitionType) {
