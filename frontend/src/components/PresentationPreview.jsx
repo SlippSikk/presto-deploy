@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
+import CodeBlock from './elements/CodeBlock';
+import VideoBlock from './elements/VideoBlock'; // Import VideoBlock
 
 const PresentationPreview = () => {
   const { id } = useParams();
@@ -52,7 +54,7 @@ const PresentationPreview = () => {
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        overflow: 'hidden', // Prevent scrolling
+        overflow: 'hidden',
         backgroundColor: '#f5f5f5',
         margin: 0,
         padding: 0,
@@ -84,12 +86,12 @@ const PresentationPreview = () => {
           <Box
             sx={{
               width: '90vw',
-              height: '50vw', // Maintain 16:9 aspect ratio
+              height: '50vw',
               maxWidth: '1280px',
               maxHeight: '720px',
               position: 'relative',
               overflow: 'hidden',
-              border: '5px solid black', // Thinner border
+              border: '5px solid black',
               backgroundColor:
                 slides[currentSlideIndex]?.background?.style === 'solid'
                   ? slides[currentSlideIndex].background.color
@@ -149,30 +151,27 @@ const PresentationPreview = () => {
                   />
                 )}
                 {element.type === 'video' && (
-                  <video
+                  <VideoBlock
                     src={element.src}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                    }}
-                    controls
-                    autoPlay
+                    autoPlay={true}
                   />
                 )}
                 {element.type === 'code' && (
                   <Box
                     sx={{
-                      fontFamily: 'monospace',
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                      backgroundColor: '#f6f8fa',
                       padding: '10px',
-                      backgroundColor: '#f5f5f5',
-                      border: '1px solid #ddd',
-                      whiteSpace: 'pre-wrap',
-                      overflow: 'auto',
-                      fontSize: '14px',
+                      boxSizing: 'border-box',
                     }}
                   >
-                    {element.code}
+                    <CodeBlock
+                      code={element.code}
+                      language={element.language}
+                      fontSize={1.2}
+                    />
                   </Box>
                 )}
               </Box>
@@ -181,49 +180,48 @@ const PresentationPreview = () => {
 
           {/* Navigation Controls */}
           <Box
-        sx={{
-          position: 'absolute',
-          bottom: '15%', // Bring the arrows slightly closer to the canvas vertically
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center', // Center the arrows relative to the canvas
-          alignItems: 'center',
-          padding: '0 10%', // Reduced horizontal padding for closer arrow placement
-        }}
-      >
-        <IconButton
-          onClick={goToPreviousSlide}
-          disabled={currentSlideIndex === 0}
-          sx={{
-            color: 'black',
-            '&:disabled': { opacity: 0.5 },
-          }}
-          aria-label="Previous Slide"
-        >
-          <ArrowBack />
-        </IconButton>
-        <Typography
-          variant="h6"
-          sx={{
-            color: 'black',
-            textAlign: 'center',
-          }}
-        >
-          {`${currentSlideIndex + 1} / ${slides.length}`}
-        </Typography>
-        <IconButton
-          onClick={goToNextSlide}
-          disabled={currentSlideIndex === slides.length - 1}
-          sx={{
-            color: 'black',
-            '&:disabled': { opacity: 0.5 },
-          }}
-          aria-label="Next Slide"
-        >
-          <ArrowForward />
-        </IconButton>
-      </Box>
-
+            sx={{
+              position: 'absolute',
+              bottom: '15%',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '0 10%',
+            }}
+          >
+            <IconButton
+              onClick={goToPreviousSlide}
+              disabled={currentSlideIndex === 0}
+              sx={{
+                color: 'black',
+                '&:disabled': { opacity: 0.5 },
+              }}
+              aria-label="Previous Slide"
+            >
+              <ArrowBack />
+            </IconButton>
+            <Typography
+              variant="h6"
+              sx={{
+                color: 'black',
+                textAlign: 'center',
+              }}
+            >
+              {`${currentSlideIndex + 1} / ${slides.length}`}
+            </Typography>
+            <IconButton
+              onClick={goToNextSlide}
+              disabled={currentSlideIndex === slides.length - 1}
+              sx={{
+                color: 'black',
+                '&:disabled': { opacity: 0.5 },
+              }}
+              aria-label="Next Slide"
+            >
+              <ArrowForward />
+            </IconButton>
+          </Box>
         </>
       )}
     </Box>
