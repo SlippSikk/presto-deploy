@@ -87,6 +87,24 @@ export const StoreProvider = ({ children }) => {
       : [ensureSlideBackground({ id: `slide-${Date.now()}`, elements: [] })],
   });
 
+  /** 
+   * Reorders the slides of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {Array} newSlides - The new ordered slides array.
+   */
+  const reorderSlides = async (presentationId, newSlides) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? { ...presentation, slides: newSlides }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
   /**
    * Fetches the store data when the user is authenticated.
    */
@@ -437,6 +455,7 @@ export const StoreProvider = ({ children }) => {
         updateSlideFontFamily,
         updateDefaultBackground, 
         updateTransitionType,
+        reorderSlides,
         setStoreState,
       }}
     >
