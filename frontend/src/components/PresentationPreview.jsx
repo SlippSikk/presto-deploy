@@ -1,5 +1,3 @@
-// src/components/PresentationPreview.jsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
@@ -14,62 +12,55 @@ const PresentationPreview = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [presentation, setPresentation] = useState(null);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(null); // Local state for the slide index
+  const [slides, setSlides] = useState([]); // Local state for slides
 
+  // Load the presentation and slides
   useEffect(() => {
     if (store?.presentations) {
       const foundPresentation = store.presentations.find((p) => p.id === id);
       setPresentation(foundPresentation || null);
+      setSlides(foundPresentation?.slides || []);
     }
   }, [store, id]);
 
-  const slides = presentation?.slides || [];
-
-  // Initialize slide index from URL once slides are loaded
+  // Set initial slide index from URL parameter
   useEffect(() => {
     if (slides.length > 0) {
       const slideParam = parseInt(searchParams.get('slide'), 10);
       if (!isNaN(slideParam) && slideParam >= 1 && slideParam <= slides.length) {
-        setCurrentSlideIndex(slideParam - 1); // Convert to 0-based index
-      } else {
-        // If invalid or not present, default to first slide and update URL
-        setCurrentSlideIndex(0);
-        // Only set searchParams if the 'slide' parameter is missing or invalid
-        if (!slideParam || slideParam < 1 || slideParam > slides.length) {
-          setSearchParams({ slide: 1 }, { replace: true });
-        }
+        setCurrentSlideIndex(slideParam - 1); // Convert 1-based index to 0-based
+      } else if (currentSlideIndex === null) {
+        setCurrentSlideIndex(0); // Default to the first slide
+        setSearchParams({ slide: 1 }, { replace: true });
       }
     }
-  }, [searchParams, slides.length, slides, setSearchParams]);
+  }, [searchParams, slides, setSearchParams, currentSlideIndex]);
 
   // Update URL when slide index changes
-  useEffect(() => {
-    const currentSlideNumber = currentSlideIndex + 1;
+  const updateUrl = (newIndex) => {
+    const currentSlideNumber = newIndex + 1;
     const slideParam = parseInt(searchParams.get('slide'), 10);
     if (slideParam !== currentSlideNumber) {
       setSearchParams({ slide: currentSlideNumber }, { replace: true });
     }
-  }, [currentSlideIndex, setSearchParams, searchParams]);
+  };
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') goToNextSlide();
-      else if (e.key === 'ArrowLeft') goToPreviousSlide();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSlideIndex, slides.length]);
-
+  // Navigate to the next slide
   const goToNextSlide = () => {
     if (currentSlideIndex < slides.length - 1) {
-      setCurrentSlideIndex(currentSlideIndex + 1);
+      const newIndex = currentSlideIndex + 1;
+      setCurrentSlideIndex(newIndex);
+      updateUrl(newIndex);
     }
   };
 
+  // Navigate to the previous slide
   const goToPreviousSlide = () => {
     if (currentSlideIndex > 0) {
-      setCurrentSlideIndex(currentSlideIndex - 1);
+      const newIndex = currentSlideIndex - 1;
+      setCurrentSlideIndex(newIndex);
+      updateUrl(newIndex);
     }
   };
 
@@ -112,6 +103,10 @@ const PresentationPreview = () => {
       ) : slides.length === 0 ? (
         <Typography variant="h6" color="textSecondary">
           No slides available.
+        </Typography>
+      ) : currentSlideIndex === null ? (
+        <Typography variant="h6" color="textSecondary">
+          Loading slide...
         </Typography>
       ) : (
         <>
@@ -183,12 +178,7 @@ const PresentationPreview = () => {
                     }}
                   />
                 )}
-                {element.type === 'video' && (
-                  <VideoBlock
-                    src={element.src}
-                    autoPlay={true}
-                  />
-                )}
+                {element.type === 'video' && <VideoBlock src={element.src} autoPlay />}
                 {element.type === 'code' && (
                   <Box
                     sx={{
@@ -200,11 +190,7 @@ const PresentationPreview = () => {
                       boxSizing: 'border-box',
                     }}
                   >
-                    <CodeBlock
-                      code={element.code}
-                      language={element.language}
-                      fontSize={1.2}
-                    />
+                    <CodeBlock code={element.code} language={element.language} fontSize={1.2} />
                   </Box>
                 )}
               </Box>
