@@ -14,36 +14,31 @@ import {
   Box,
   Alert,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  FormControl,      // Added
+  InputLabel,       // Added
+  Select,            // Added
+  MenuItem,          // Added
 } from '@mui/material';
-import { Edit, ArrowBack, DragIndicator } from '@mui/icons-material';
+import { Edit, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideEditor from '../components/SlideEditor';
 import SlideNumber from '../components/SlideNumber'; // Import SlideNumber
 
-// Import @dnd-kit components
+// Import react-beautiful-dnd components
 import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import SortableItem from '../components/SortableItem'; // We'll create this component
+  DragDropContext,
+  Droppable,
+  Draggable,
+} from 'react-beautiful-dnd';
+
+// Import SlideThumbnail
+import SlideThumbnail from '../components/SlideThumbnail';
 
 const PresentationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams(); // Initialize useSearchParams
 
   const {
     store,
@@ -53,7 +48,7 @@ const PresentationPage = () => {
     deletePresentation,
     updateSlide,
     deleteSlide,
-    reorderSlides,
+    reorderSlides, // Ensure this function is available in StoreContext
   } = useContext(StoreContext);
   
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -216,30 +211,32 @@ const PresentationPage = () => {
   };
 
   /**
-   * Handle drag end for rearranging slides using @dnd-kit
+   * Handle drag end for rearranging slides
    */
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    })
-  );
+  const onDragEnd = async (result) => {
+    const { destination, source } = result;
 
-  const handleDragEnd = async (event) => {
-    const { active, over } = event;
+    // If no destination, do nothing
+    if (!destination) return;
 
-    if (active.id !== over?.id) {
-      const oldIndex = slides.findIndex((slide) => slide.id === active.id);
-      const newIndex = slides.findIndex((slide) => slide.id === over?.id);
+    // If the item was dropped in the same position, do nothing
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
 
-      const newSlides = arrayMove(slides, oldIndex, newIndex);
+    // Reorder slides array
+    const reorderedSlides = Array.from(slides);
+    const [movedSlide] = reorderedSlides.splice(source.index, 1);
+    reorderedSlides.splice(destination.index, 0, movedSlide);
 
-      try {
-        await reorderSlides(id, newSlides);
-      } catch (err) {
-        setDialogError('Failed to reorder slides.');
-      }
+    // Persist the reordered slides to the store
+    try {
+      await reorderSlides(id, reorderedSlides);
+    } catch (err) {
+      setDialogError('Failed to reorder slides.');
     }
   };
 
@@ -380,61 +377,59 @@ const PresentationPage = () => {
       >
         <DialogTitle>Rearrange Slides</DialogTitle>
         <DialogContent>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={slides.map((slide) => slide.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  padding: 2,
-                }}
-              >
-                {slides.map((slide, index) => (
-                  <SortableItem key={slide.id} id={slide.id} index={index + 1}>
-                    <Box
-                      sx={{
-                        width: '160px', // Fixed width
-                        height: '90px', // Fixed height
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        position: 'relative',
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                        cursor: 'grab',
-                        backgroundColor: '#ffffff',
-                      }}
-                    >
-                      <SlideThumbnail slide={slide} index={index + 1} />
-                      <IconButton
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          right: 8,
-                          color: '#ffffff',
-                          backgroundColor: 'rgba(0,0,0,0.5)',
-                          '&:hover': {
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                          },
-                        }}
-                        size="small"
-                        aria-label="Drag Handle"
-                        {...slide.dragHandleProps} // Spread the drag handle props
-                      >
-                        <DragIndicator />
-                      </IconButton>
-                    </Box>
-                  </SortableItem>
-                ))}
-              </Box>
-            </SortableContext>
-          </DndContext>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="slidesDroppable" direction="horizontal">
+              {(provided) => (
+                <Box
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  sx={{
+                    display: 'flex',
+                    overflowX: 'auto',
+                    padding: 2,
+                  }}
+                >
+                  {slides.map((slide, index) => (
+                    <Draggable key={slide.id} draggableId={slide.id} index={index}>
+                      {(provided, snapshot) => (
+                        <Box
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          sx={{
+                            width: 160, // Fixed width
+                            height: 90, // Fixed height
+                            marginRight: 2,
+                            padding: 1,
+                            border: '2px solid #1976d2',
+                            borderRadius: 2,
+                            backgroundColor: snapshot.isDragging
+                              ? '#e3f2fd'
+                              : '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'grab',
+                            userSelect: 'none',
+                            boxShadow: snapshot.isDragging
+                              ? '0 4px 8px rgba(0,0,0,0.2)'
+                              : 'none',
+                            transition: 'background-color 0.2s, box-shadow 0.2s',
+                            '&:hover': {
+                              borderColor: '#115293',
+                            },
+                          }}
+                        >
+                          <SlideThumbnail slide={slide} index={index + 1} />
+                        </Box>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </Box>
+              )}
+            </Droppable>
+          </DragDropContext>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenRearrangeDialog(false)} color="primary">
