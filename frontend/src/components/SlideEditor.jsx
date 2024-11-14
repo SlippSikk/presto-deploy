@@ -12,7 +12,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Add, Brush, PlayArrow } from '@mui/icons-material'; // Added PlayArrow icon
+import { Add, Brush, PlayArrow } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import { ELEMENT_TYPES } from '../types/elementTypes';
 import TextBlock from './elements/TextBlock';
@@ -28,8 +28,8 @@ import EditTextModal from './modals/EditTextModal';
 import EditImageModal from './modals/EditImageModal';
 import EditVideoModal from './modals/EditVideoModal';
 import EditCodeModal from './modals/EditCodeModal';
-import BackgroundPickerModal from './modals/BackgroundPickerModal'; // Import the existing modal
-import DefaultBackgroundPickerModal from './modals/DefaultBackgroundPickerModal'; // Import the new modal
+import BackgroundPickerModal from './modals/BackgroundPickerModal';
+import DefaultBackgroundPickerModal from './modals/DefaultBackgroundPickerModal';
 
 // Define available font families
 const FONT_FAMILIES = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia'];
@@ -48,22 +48,22 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // State for selected element (for showing resize/move handles)
   const [selectedElementId, setSelectedElementId] = useState(null);
 
-  // **State for Font Selection**
+  // State for Font Selection
   const [selectedFont, setSelectedFont] = useState(slide.fontFamily || 'Arial');
 
-  // **States for Background Pickers**
+  // States for Background Pickers
   const [openBackgroundModal, setOpenBackgroundModal] = useState(false);
   const [openDefaultBackgroundModal, setOpenDefaultBackgroundModal] = useState(false); // State for default background modal
 
   // Destructure required functions from StoreContext
-  const { deleteElement, store, updateDefaultBackground } = useContext(StoreContext);
+  const { deleteElement, updateDefaultBackground } = useContext(StoreContext);
 
   // Debugging: Log the slide prop
   useEffect(() => {
     console.log('Slide prop:', slide);
   }, [slide]);
 
-  // **Effect to synchronize font when slide changes**
+  // Effect to synchronize font when slide changes
   useEffect(() => {
     setSelectedFont(slide.fontFamily || 'Arial');
   }, [slide]);
@@ -71,16 +71,22 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
   // Handler for font change
   const handleFontChange = (e) => {
     const newFont = e.target.value;
+    if (newFont === slide.fontFamily) return; // No change needed
     setSelectedFont(newFont);
-    updateSlide(presentationId, slide.id, { ...slide, fontFamily: newFont });
+    const updatedSlide = { ...slide, fontFamily: newFont };
+    updateSlide(presentationId, slide.id, updatedSlide);
   };
 
-  // **Handler for background update (current slide)**
+  // Handler for background update (current slide)
   const handleBackgroundUpdate = (newBackground) => {
-    updateSlide(presentationId, slide.id, { ...slide, background: newBackground });
+    // Compare newBackground with current slide.background to prevent unnecessary updates
+    const isDifferent = JSON.stringify(newBackground) !== JSON.stringify(slide.background);
+    if (!isDifferent) return; // No change needed
+    const updatedSlide = { ...slide, background: newBackground };
+    updateSlide(presentationId, slide.id, updatedSlide);
   };
 
-  // **Handler for default background update**
+  // Handler for default background update
   const handleDefaultBackgroundUpdate = (newBackground) => {
     updateDefaultBackground(presentationId, newBackground);
   };
@@ -118,15 +124,24 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       ...elementData,
     };
     const updatedElements = [...elements, newElement];
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+    const updatedSlide = { ...slide, elements: updatedElements };
+    updateSlide(presentationId, slide.id, updatedSlide);
   };
 
-  // **Updated openPreview Function Using window.open**
+  // Updated openPreview Function Using window.open
   const openPreview = () => {
     window.open(`/presentation/${presentationId}/preview`, '_blank');
   };
 
   const handleUpdateElementPositionAndSize = (id, position, size) => {
+    const element = elements.find((el) => el.id === id);
+    if (!element) return;
+
+    // Check if position and size have actually changed
+    const isPositionChanged = element.position.x !== position.x || element.position.y !== position.y;
+    const isSizeChanged = element.size.width !== size.width || element.size.height !== size.height;
+    if (!isPositionChanged && !isSizeChanged) return; // No change needed
+
     const updatedElements = elements.map((el) =>
       el.id === id
         ? {
@@ -136,7 +151,8 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           }
         : el
     );
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+    const updatedSlide = { ...slide, elements: updatedElements };
+    updateSlide(presentationId, slide.id, updatedSlide);
   };
 
   const handleElementDoubleClick = (element) => {
@@ -148,7 +164,8 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const updatedElements = elements.map((el) =>
       el.id === updatedElement.id ? updatedElement : el
     );
-    updateSlide(presentationId, slide.id, { ...slide, elements: updatedElements });
+    const updatedSlide = { ...slide, elements: updatedElements };
+    updateSlide(presentationId, slide.id, updatedSlide);
     setOpenEditModal(false);
     setEditingElement(null);
   };
@@ -574,22 +591,22 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
       <AddTextModal
         open={openTextModal}
         onClose={() => setOpenTextModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
       <AddImageModal
         open={openImageModal}
         onClose={() => setOpenImageModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
       <AddVideoModal
         open={openVideoModal}
         onClose={() => setOpenVideoModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
       <AddCodeModal
         open={openCodeModal}
         onClose={() => setOpenCodeModal(false)}
-        onAdd={handleAddElement}
+        onAdd={(type, data) => handleAddElement(type, data)}
       />
 
       {/* Background Picker Modal for Current Slide */}
@@ -605,6 +622,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
         open={openDefaultBackgroundModal}
         onClose={() => setOpenDefaultBackgroundModal(false)}
         presentationId={presentationId}
+        onUpdate={handleDefaultBackgroundUpdate}
       />
 
       {/* Edit Element Modal */}

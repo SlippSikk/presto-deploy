@@ -35,6 +35,7 @@ const PresentationPage = () => {
     updateSlide,
     deleteSlide,
   } = useContext(StoreContext);
+  
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openEditTitleDialog, setOpenEditTitleDialog] = useState(false);
@@ -46,7 +47,9 @@ const PresentationPage = () => {
   const defaultThumbnail = '/assets/default-thumbnail.jpg';
   const presentation = store.presentations.find((p) => p.id === id);
 
-  // Effect to set currentSlideIndex based on URL's 'slide' query parameter
+  /**
+   * Effect: Synchronize currentSlideIndex with the URL's 'slide' parameter
+   */
   useEffect(() => {
     if (presentation && Array.isArray(presentation.slides)) {
       const slideParam = parseInt(searchParams.get('slide'), 10);
@@ -62,16 +65,7 @@ const PresentationPage = () => {
     }
   }, [presentation, searchParams, setSearchParams]);
 
-  // Effect to update URL when currentSlideIndex changes
-  useEffect(() => {
-    if (presentation && Array.isArray(presentation.slides)) {
-      const desiredSlideParam = currentSlideIndex + 1;
-      const currentSlideParam = parseInt(searchParams.get('slide'), 10);
-      if (currentSlideParam !== desiredSlideParam) {
-        setSearchParams({ slide: desiredSlideParam }, { replace: true });
-      }
-    }
-  }, [currentSlideIndex, presentation, searchParams, setSearchParams]);
+  // **Removed the second useEffect to prevent feedback loops**
 
   if (!presentation) {
     return (
@@ -86,6 +80,61 @@ const PresentationPage = () => {
   const currentSlide =
     slides.length > 0 ? slides[currentSlideIndex] || slides[0] : { id: `slide-${Date.now()}`, elements: [], fontFamily: 'Arial' };
 
+  /**
+   * Handle adding a new slide
+   */
+  const handleAddSlide = async () => {
+    const newSlide = {
+      id: `slide-${Date.now()}`,
+      elements: [],
+      fontFamily: 'Arial', // Ensure new slides have a default fontFamily
+    };
+    try {
+      await addSlide(id, newSlide);
+      
+      // After adding, navigate to the new slide by updating the 'slide' param
+      // Assuming addSlide updates the store synchronously
+      const updatedSlides = [...slides, newSlide];
+      const newSlideIndex = updatedSlides.length - 1; // 0-based index
+      setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
+    } catch (err) {
+      setDialogError('Failed to add slide');
+    }
+  };
+
+  /**
+   * Handle deleting the current slide
+   */
+  const handleDeleteSlide = async () => {
+    const slideId = currentSlide.id;
+
+    try {
+      await deleteSlide(id, slideId);
+      
+      const updatedSlides = slides.filter((slide) => slide.id !== slideId);
+      const updatedSlideCount = updatedSlides.length;
+
+      if (updatedSlideCount === 0) {
+        // Prevent deleting the last slide
+        setDialogError('Cannot delete the last slide.');
+        return;
+      }
+
+      // Determine the new slide index
+      let newSlideIndex = currentSlideIndex;
+      if (currentSlideIndex >= updatedSlideCount) {
+        newSlideIndex = updatedSlideCount - 1;
+      }
+
+      setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
+    } catch (err) {
+      setDialogError('Failed to delete slide.');
+    }
+  };
+
+  /**
+   * Handle deleting the entire presentation
+   */
   const handleDeletePresentation = async () => {
     try {
       await deletePresentation(id);
@@ -95,6 +144,9 @@ const PresentationPage = () => {
     }
   };
 
+  /**
+   * Handle updating the presentation title
+   */
   const handleUpdateTitle = async () => {
     if (!newTitle.trim()) {
       setDialogError('Title cannot be empty');
@@ -111,6 +163,9 @@ const PresentationPage = () => {
     }
   };
 
+  /**
+   * Handle updating the presentation thumbnail
+   */
   const handleUpdateThumbnail = async () => {
     let thumbnailUrl = presentation.thumbnail;
 
@@ -134,35 +189,16 @@ const PresentationPage = () => {
     }
   };
 
-  const handleAddSlide = async () => {
-    const newSlide = {
-      id: `slide-${Date.now()}`,
-      elements: [],
-      fontFamily: 'Arial', // Ensure new slides have a default fontFamily
-    };
-    try {
-      await addSlide(id, newSlide);
-      setCurrentSlideIndex(slides.length); // New slide index
-    } catch (err) {
-      setDialogError('Failed to add slide');
-    }
-  };
-
-  const handleDeleteSlide = async () => {
-    const slideId = currentSlide.id;
-
-    try {
-      await deleteSlide(id, slideId);
-      setCurrentSlideIndex((prev) => (prev > 0 ? prev - 1 : 0));
-    } catch (err) {
-      setDialogError(err.message);
-    }
-  };
-
+  /**
+   * Navigate back to the dashboard
+   */
   const handleBack = () => {
     navigate('/dashboard');
   };
 
+  /**
+   * Handler to update a slide, passed down to SlideEditor
+   */
   const updateSlideHandler = async (presentationId, slideId, updatedSlide) => {
     await updateSlide(presentationId, slideId, updatedSlide);
   };
@@ -242,12 +278,14 @@ const PresentationPage = () => {
         totalSlides={slides.length}
         onPrevious={() => {
           if (currentSlideIndex > 0) {
-            setCurrentSlideIndex((prev) => prev - 1);
+            const newIndex = currentSlideIndex - 1;
+            setSearchParams({ slide: newIndex + 1 }, { replace: true });
           }
         }}
         onNext={() => {
           if (currentSlideIndex < slides.length - 1) {
-            setCurrentSlideIndex((prev) => prev + 1);
+            const newIndex = currentSlideIndex + 1;
+            setSearchParams({ slide: newIndex + 1 }, { replace: true });
           }
         }}
       />
