@@ -1,3 +1,5 @@
+// src/components/PresentationPreview.jsx
+
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
@@ -221,12 +223,13 @@ const PresentationPreview = () => {
                 {element.type === 'text' && (
                   <Typography
                     sx={{
-                      fontSize: `calc(${element.fontSize}px + 1vw)`,
+                      fontSize: `${element.fontSize}em`, // Dynamic font size with 'em' units
                       color: element.color,
                       fontFamily: slides[currentSlideIndex]?.fontFamily || 'Arial',
-                      textAlign: 'center',
+                      textAlign: 'left', // Set to 'left' for left alignment
                       overflowWrap: 'break-word',
                       whiteSpace: 'pre-wrap',
+                      width: '100%', // Ensure Typography spans the full width
                     }}
                   >
                     {element.content}
