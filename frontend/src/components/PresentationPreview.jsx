@@ -85,20 +85,20 @@ const PresentationPreview = () => {
   // Transitions
   const getTransitionStyle = (transitionType) => {
     switch (transitionType) {
-      case 'fade':
-        return {
-          animation: 'fadeIn 1s ease-in-out',
-        };
-      case 'slideLeft':
-        return {
-          animation: 'slideLeft 1s ease-in-out',
-        };
-      case 'slideRight':
-        return {
-          animation: 'slideRight 1s ease-in-out',
-        };
-      default:
-        return {};
+    case 'fade':
+      return {
+        animation: 'fadeIn 1s ease-in-out',
+      };
+    case 'slideLeft':
+      return {
+        animation: 'slideLeft 1s ease-in-out',
+      };
+    case 'slideRight':
+      return {
+        animation: 'slideRight 1s ease-in-out',
+      };
+    default:
+      return {};
     }
   };
 
@@ -193,11 +193,11 @@ const PresentationPreview = () => {
               backgroundImage:
                 slides[currentSlideIndex]?.background?.style === 'gradient'
                   ? `linear-gradient(${slides[currentSlideIndex].background.gradient.direction}, ${slides[currentSlideIndex].background.gradient.colors.join(
-                      ', '
-                    )})`
+                    ', '
+                  )})`
                   : slides[currentSlideIndex]?.background?.style === 'image'
-                  ? `url(${slides[currentSlideIndex].background.image})`
-                  : 'none',
+                    ? `url(${slides[currentSlideIndex].background.image})`
+                    : 'none',
               backgroundSize: 'cover',
               backgroundRepeat: 'no-repeat',
               boxShadow: 3,

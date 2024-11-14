@@ -11,39 +11,39 @@ export const getDesignTokens = (mode) => ({
     mode,
     ...(mode === 'light'
       ? {
-          // Palette values for light mode
-          primary: {
-            main: blue[700],
-          },
-          secondary: {
-            main: pink[500],
-          },
-          background: {
-            default: grey[100],
-            paper: '#fff',
-          },
-          text: {
-            primary: grey[900],
-            secondary: grey[800],
-          },
-        }
+        // Palette values for light mode
+        primary: {
+          main: blue[700],
+        },
+        secondary: {
+          main: pink[500],
+        },
+        background: {
+          default: grey[100],
+          paper: '#fff',
+        },
+        text: {
+          primary: grey[900],
+          secondary: grey[800],
+        },
+      }
       : {
-          // Palette values for dark mode
-          primary: {
-            main: blue[200],
-          },
-          secondary: {
-            main: pink[200],
-          },
-          background: {
-            default: '#121212',
-            paper: grey[900],
-          },
-          text: {
-            primary: '#fff',
-            secondary: grey[500],
-          },
-        }),
+        // Palette values for dark mode
+        primary: {
+          main: blue[200],
+        },
+        secondary: {
+          main: pink[200],
+        },
+        background: {
+          default: '#121212',
+          paper: grey[900],
+        },
+        text: {
+          primary: '#fff',
+          secondary: grey[500],
+        },
+      }),
   },
   typography: {
     // Define global typography settings if needed

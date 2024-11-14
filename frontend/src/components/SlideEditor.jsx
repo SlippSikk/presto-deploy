@@ -143,10 +143,10 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     const updatedElements = elements.map((el) =>
       el.id === id
         ? {
-            ...el,
-            position, // { x: percentage, y: percentage }
-            size, // { width: percentage, height: percentage }
-          }
+          ...el,
+          position, // { x: percentage, y: percentage }
+          size, // { width: percentage, height: percentage }
+        }
         : el
     );
     const updatedSlide = { ...slide, elements: updatedElements };
@@ -172,121 +172,121 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
     if (!editingElement) return null;
 
     switch (editingElement.type) {
-      case ELEMENT_TYPES.TEXT:
-        return (
-          <EditTextModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      case ELEMENT_TYPES.IMAGE:
-        return (
-          <EditImageModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      case ELEMENT_TYPES.VIDEO:
-        return (
-          <EditVideoModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      case ELEMENT_TYPES.CODE:
-        return (
-          <EditCodeModal
-            open={openEditModal}
-            onClose={() => setOpenEditModal(false)}
-            element={editingElement}
-            onUpdate={handleUpdateElement}
-          />
-        );
-      default:
-        return null;
+    case ELEMENT_TYPES.TEXT:
+      return (
+        <EditTextModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    case ELEMENT_TYPES.IMAGE:
+      return (
+        <EditImageModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    case ELEMENT_TYPES.VIDEO:
+      return (
+        <EditVideoModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    case ELEMENT_TYPES.CODE:
+      return (
+        <EditCodeModal
+          open={openEditModal}
+          onClose={() => setOpenEditModal(false)}
+          element={editingElement}
+          onUpdate={handleUpdateElement}
+        />
+      );
+    default:
+      return null;
     }
   };
 
   const renderElement = (element) => {
     let content;
     switch (element.type) {
-      case ELEMENT_TYPES.TEXT:
-        content = (
-          <Box
-            sx={{
-              border: '1px solid lightgrey', // Soft grey border for text
-              padding: '5px',
-              backgroundColor: 'white',
-              width: '100%',
-              height: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <TextBlock
-              content={element.content}
-              fontSize={element.fontSize}
-              color={element.color}
-              fontFamily={slide.fontFamily || 'Arial'} // Apply selected font to text blocks
+    case ELEMENT_TYPES.TEXT:
+      content = (
+        <Box
+          sx={{
+            border: '1px solid lightgrey', // Soft grey border for text
+            padding: '5px',
+            backgroundColor: 'white',
+            width: '100%',
+            height: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <TextBlock
+            content={element.content}
+            fontSize={element.fontSize}
+            color={element.color}
+            fontFamily={slide.fontFamily || 'Arial'} // Apply selected font to text blocks
+          />
+        </Box>
+      );
+      break;
+
+    case ELEMENT_TYPES.IMAGE:
+      content = <ImageBlock src={element.src} alt={element.alt} />;
+      break;
+
+    case ELEMENT_TYPES.VIDEO:
+      content = (
+        <Box
+          sx={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          {selectedElementId === element.id && (
+            <Box
+              sx={{
+                position: 'absolute',
+                width: 'calc(100% + 10px)',
+                height: 'calc(100% + 10px)',
+                top: '-5px',
+                left: '-5px',
+                zIndex: 1,
+              }}
             />
-          </Box>
-        );
-        break;
+          )}
+          <VideoBlock src={element.src} autoPlay={element.autoPlay} />
+        </Box>
+      );
+      break;
 
-      case ELEMENT_TYPES.IMAGE:
-        content = <ImageBlock src={element.src} alt={element.alt} />;
-        break;
-
-      case ELEMENT_TYPES.VIDEO:
-        content = (
-          <Box
-            sx={{
-              position: 'relative',
-              width: '100%',
-              height: '100%',
-            }}
-          >
-            {selectedElementId === element.id && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  width: 'calc(100% + 10px)',
-                  height: 'calc(100% + 10px)',
-                  top: '-5px',
-                  left: '-5px',
-                  zIndex: 1,
-                }}
-              />
-            )}
-            <VideoBlock src={element.src} autoPlay={element.autoPlay} />
-          </Box>
-        );
-        break;
-
-      case ELEMENT_TYPES.CODE:
-        content = (
-          <Box
-            sx={{
-              border: '1px solid lightgrey',
-              padding: '10px',
-              backgroundColor: '#f5f5f5', // Light grey background for code blocks
-              fontFamily: 'monospace', // Use monospace font for code
-              width: '100%',
-              height: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <CodeBlock code={element.code} language={element.language} />
-          </Box>
-        );
-        break;
-      default:
-        return null;
+    case ELEMENT_TYPES.CODE:
+      content = (
+        <Box
+          sx={{
+            border: '1px solid lightgrey',
+            padding: '10px',
+            backgroundColor: '#f5f5f5', // Light grey background for code blocks
+            fontFamily: 'monospace', // Use monospace font for code
+            width: '100%',
+            height: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <CodeBlock code={element.code} language={element.language} />
+        </Box>
+      );
+      break;
+    default:
+      return null;
     }
 
     // Convert percentage sizes to pixels
@@ -582,11 +582,11 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
           backgroundImage:
             slide.background?.style === 'gradient'
               ? `linear-gradient(${slide.background.gradient.direction}, ${slide.background.gradient.colors.join(
-                  ', '
-                )})`
+                ', '
+              )})`
               : slide.background?.style === 'image'
-              ? `url(${slide.background.image})`
-              : 'none',
+                ? `url(${slide.background.image})`
+                : 'none',
           backgroundSize: slide.background?.style === 'image' ? 'cover' : 'auto',
           backgroundRepeat: slide.background?.style === 'image' ? 'no-repeat' : 'repeat',
           display: 'flex',

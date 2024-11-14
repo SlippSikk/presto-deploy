@@ -125,10 +125,10 @@ export const StoreProvider = ({ children }) => {
             response.data.store &&
             Array.isArray(response.data.store.presentations)
               ? {
-                  presentations: response.data.store.presentations.map((presentation) =>
-                    ensurePresentationDefaults(presentation)
-                  ),
-                }
+                presentations: response.data.store.presentations.map((presentation) =>
+                  ensurePresentationDefaults(presentation)
+                ),
+              }
               : { presentations: [] };
 
           console.log('Fetched Store:', fetchedStore); // Additional debugging
@@ -296,11 +296,11 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId ? ensureSlideBackground(updatedSlide) : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId ? ensureSlideBackground(updatedSlide) : slide
+            ),
+          }
           : presentation
       ),
     };
@@ -326,9 +326,9 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.filter((slide) => slide.id !== slideId),
-            }
+            ...presentation,
+            slides: presentation.slides.filter((slide) => slide.id !== slideId),
+          }
           : presentation
       ),
     };
@@ -349,13 +349,13 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId
-                  ? { ...slide, elements: [...slide.elements, element] }
-                  : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId
+                ? { ...slide, elements: [...slide.elements, element] }
+                : slide
+            ),
+          }
           : presentation
       ),
     };
@@ -375,18 +375,18 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId
-                  ? {
-                      ...slide,
-                      elements: slide.elements.map((element) =>
-                        element.id === updatedElement.id ? updatedElement : element
-                      ),
-                    }
-                  : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId
+                ? {
+                  ...slide,
+                  elements: slide.elements.map((element) =>
+                    element.id === updatedElement.id ? updatedElement : element
+                  ),
+                }
+                : slide
+            ),
+          }
           : presentation
       ),
     };
@@ -406,16 +406,16 @@ export const StoreProvider = ({ children }) => {
       presentations: store.presentations.map((presentation) =>
         presentation.id === presentationId
           ? {
-              ...presentation,
-              slides: presentation.slides.map((slide) =>
-                slide.id === slideId
-                  ? {
-                      ...slide,
-                      elements: slide.elements.filter((element) => element.id !== elementId),
-                    }
-                  : slide
-              ),
-            }
+            ...presentation,
+            slides: presentation.slides.map((slide) =>
+              slide.id === slideId
+                ? {
+                  ...slide,
+                  elements: slide.elements.filter((element) => element.id !== elementId),
+                }
+                : slide
+            ),
+          }
           : presentation
       ),
     };

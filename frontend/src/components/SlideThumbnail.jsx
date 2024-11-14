@@ -14,26 +14,26 @@ const SlideThumbnail = ({ slide, index }) => {
   // Determine background styles
   const backgroundStyles = () => {
     switch (slide.background?.style) {
-      case 'solid':
-        return {
-          backgroundColor: slide.background.color || '#ffffff',
-        };
-      case 'gradient':
-        return {
-          backgroundImage: `linear-gradient(${slide.background.gradient.direction || 'to right'}, ${slide.background.gradient.colors.join(
-            ', '
-          )})`,
-        };
-      case 'image':
-        return {
-          backgroundImage: `url(${slide.background.image || ''})`,
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-        };
-      default:
-        return {
-          backgroundColor: '#ffffff',
-        };
+    case 'solid':
+      return {
+        backgroundColor: slide.background.color || '#ffffff',
+      };
+    case 'gradient':
+      return {
+        backgroundImage: `linear-gradient(${slide.background.gradient.direction || 'to right'}, ${slide.background.gradient.colors.join(
+          ', '
+        )})`,
+      };
+    case 'image':
+      return {
+        backgroundImage: `url(${slide.background.image || ''})`,
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      };
+    default:
+      return {
+        backgroundColor: '#ffffff',
+      };
     }
   };
 
