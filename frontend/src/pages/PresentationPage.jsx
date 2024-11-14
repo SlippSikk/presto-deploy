@@ -331,13 +331,13 @@ const PresentationPage = () => {
       {/* Add, Delete, and Rearrange Slide Buttons */}
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Button variant="contained" onClick={handleAddSlide}>
-          Add Slide
+          + New Slide
         </Button>
         <Button variant="outlined" color="error" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
         <Button variant="outlined" onClick={() => setOpenRearrangeDialog(true)}>
-          Rearrange Slides
+          Arrange Slides
         </Button>
       </Box>
 
