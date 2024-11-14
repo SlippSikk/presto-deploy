@@ -41,7 +41,7 @@ const RegisterPage = () => {
       maxWidth="sm"
       sx={{
         mt: 8,
-        backgroundColor: 'background.default',
+        backgroundColor: 'common.white', // Set form background to white
         p: 4,
         borderRadius: 2,
         boxShadow: 3,
@@ -66,6 +66,20 @@ const RegisterPage = () => {
           value={form.name}
           onChange={handleChange}
           aria-label="Name"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <TextField
           label="Email"
@@ -77,6 +91,20 @@ const RegisterPage = () => {
           value={form.email}
           onChange={handleChange}
           aria-label="Email"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <TextField
           label="Password"
@@ -88,6 +116,20 @@ const RegisterPage = () => {
           value={form.password}
           onChange={handleChange}
           aria-label="Password"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <TextField
           label="Confirm Password"
@@ -99,6 +141,20 @@ const RegisterPage = () => {
           value={form.confirmPassword}
           onChange={handleChange}
           aria-label="Confirm Password"
+          InputLabelProps={{
+            color: 'text.primary',
+          }}
+          sx={{
+            '& .MuiInputBase-root': {
+              color: 'text.primary',
+            },
+            '& .MuiInput-underline:before': {
+              borderBottomColor: 'grey.400',
+            },
+            '& .MuiInput-underline:hover:before': {
+              borderBottomColor: 'primary.main',
+            },
+          }}
         />
         <Box sx={{ mt: 3 }}>
           <Button type="submit" variant="contained" color="primary" fullWidth aria-label="Register">

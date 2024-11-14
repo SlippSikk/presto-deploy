@@ -8,3 +8,4 @@
 - When rearranging slides, display a preview of each slide so user knows exactly which slide they are moving
 - Presentation preview has the ability to move between slides using arrow keys
 - Implemented 'Favouriting' presentations
+- Implemented Darkmode
