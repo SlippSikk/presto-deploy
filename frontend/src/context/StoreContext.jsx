@@ -46,24 +46,6 @@ export const StoreProvider = ({ children }) => {
     transitionType: slide.transitionType || 'none', // Default to 'none' if not set
   });
 
-  /** 
-   * Reorders the slides of a specific presentation.
-   *
-   * @param {string} presentationId - ID of the presentation.
-   * @param {Array} newSlides - The new ordered slides array.
-   */
-  const reorderSlides = async (presentationId, newSlides) => {
-    const updatedStore = {
-      ...store,
-      presentations: store.presentations.map((presentation) =>
-        presentation.id === presentationId
-          ? { ...presentation, slides: newSlides }
-          : presentation
-      ),
-    };
-    await updateStoreData(updatedStore);
-  };
-
   /**
    * Utility function to ensure each presentation has default properties.
    *
@@ -88,6 +70,45 @@ export const StoreProvider = ({ children }) => {
       ? presentation.slides.map((slide) => ensureSlideBackground(slide))
       : [ensureSlideBackground({ id: `slide-${uuidv4()}`, elements: [] })],
   });
+
+  /**
+   * Reorders the slides of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {Array} newSlides - The new ordered slides array.
+   */
+  const reorderSlides = async (presentationId, newSlides) => {
+    const updatedStore = {
+      ...store,
+      presentations: store.presentations.map((presentation) =>
+        presentation.id === presentationId
+          ? { ...presentation, slides: newSlides }
+          : presentation
+      ),
+    };
+    await updateStoreData(updatedStore);
+  };
+
+  /**
+   * Updates the transition type of a specific presentation.
+   *
+   * @param {string} presentationId - ID of the presentation.
+   * @param {string} newTransitionType - The new transition type ('none', 'fade', 'slideLeft', 'slideRight').
+   */
+  const updateTransitionType = async (presentationId, newTransitionType) => {
+    const presentation = store.presentations.find((p) => p.id === presentationId);
+    if (!presentation) {
+      console.error(`Presentation with ID ${presentationId} not found.`);
+      return;
+    }
+
+    const updatedPresentation = {
+      ...presentation,
+      transitionType: newTransitionType,
+    };
+
+    await updatePresentation(presentationId, updatedPresentation);
+  };
 
   /**
    * Fetches the store data when the user is authenticated.
@@ -438,7 +459,7 @@ export const StoreProvider = ({ children }) => {
         deleteElement,
         updateSlideFontFamily,
         updateDefaultBackground, 
-        // updateTransitionType,
+        updateTransitionType,
         reorderSlides,
         setStoreState,
       }}
