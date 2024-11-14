@@ -78,9 +78,6 @@ const PresentationPage = () => {
     }
   }, [presentation, searchParams, setSearchParams]);
 
-  // Initialize selectedTransition when presentation changes (if applicable)
-  // ... existing transition-related code ...
-
   if (!presentation) {
     return (
       <Container>
@@ -135,7 +132,7 @@ const PresentationPage = () => {
 
       setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
     } catch (err) {
-      setDialogError('Failed to delete slide. Consider deleting the whole presentation.');
+      setDialogError('Failed to delete slide.');
     }
   };
 
@@ -232,9 +229,6 @@ const PresentationPage = () => {
     const [movedSlide] = reorderedSlides.splice(source.index, 1);
     reorderedSlides.splice(destination.index, 0, movedSlide);
 
-    // Update local state
-    setSlides(reorderedSlides);
-
     // Persist the reordered slides to the store
     try {
       await reorderSlides(id, reorderedSlides);
@@ -303,8 +297,11 @@ const PresentationPage = () => {
             value={presentation.transitionType || 'none'}
             label="Transition"
             onChange={(e) => {
-              // Handle transition type change if applicable
-              // You may need to implement this functionality
+              // Handle transition type change
+              const newTransitionType = e.target.value;
+              // Implement a function to update the transition type in the store
+              // For example:
+              // updateTransitionType(id, newTransitionType);
             }}
             aria-label="Transition Type Selector"
           >
@@ -398,8 +395,8 @@ const PresentationPage = () => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           sx={{
-                            width: 100,
-                            height: 80,
+                            width: 150,
+                            height: 100,
                             marginRight: 2,
                             padding: 1,
                             border: '2px solid #1976d2',
@@ -421,9 +418,8 @@ const PresentationPage = () => {
                             },
                           }}
                         >
-                          <Typography variant="h6" color="textPrimary">
-                            {index + 1}
-                          </Typography>
+                          {/* Slide Thumbnail */}
+                          <SlideThumbnail slide={slide} />
                         </Box>
                       )}
                     </Draggable>
