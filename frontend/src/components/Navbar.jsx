@@ -20,7 +20,6 @@ const Navbar = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        {/* Application Logo or Name */}
         <Typography
           variant="h6"
           sx={{
