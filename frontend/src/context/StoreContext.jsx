@@ -85,7 +85,7 @@ export const StoreProvider = ({ children }) => {
     },
     slides: Array.isArray(presentation.slides)
       ? presentation.slides.map((slide) => ensureSlideBackground(slide))
-      : [ensureSlideBackground({ id: `slide-${Date.now()}`, elements: [] })],
+      : [ensureSlideBackground({ id: `slide-${uuidv4()}`, elements: [] })],
   });
 
   /** 
@@ -172,7 +172,7 @@ export const StoreProvider = ({ children }) => {
   const addPresentation = async (presentation) => {
     // Create an initial slide with a unique ID and empty elements array
     const initialSlide = ensureSlideBackground({
-      id: `slide-${Date.now()}`, // Unique ID for the slide
+      id: `slide-${uuidv4()}`, // Unique ID for the slide
       elements: [], // Initialize with no elements
       fontFamily: 'Arial', // Default font family for the slide
     });

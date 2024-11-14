@@ -42,8 +42,8 @@ const SlideThumbnail = ({ slide, index }) => {
   return (
     <Box
       sx={{
-        width: '160px', // Adjusted width
-        height: '90px', // Adjusted height for a more rectangular shape
+        width: '160px', // Fixed width
+        height: '90px', // Fixed height for a more rectangular shape
         borderRadius: 2,
         overflow: 'hidden',
         position: 'relative',
