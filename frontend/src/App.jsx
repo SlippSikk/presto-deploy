@@ -8,6 +8,7 @@ import PresentationPage from './pages/PresentationPage';
 import PresentationPreview from './components/PresentationPreview';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
+import { CssBaseline } from '@mui/material';
 import CustomThemeProvider from './context/ThemeContext';
 
 /**
@@ -17,6 +18,8 @@ import CustomThemeProvider from './context/ThemeContext';
 const App = () => {
   return (
     <CustomThemeProvider>
+      {/* CssBaseline kickstarts an elegant, consistent, and simple baseline to build upon. */}
+      <CssBaseline />
       <Navbar />
       <Routes>
         {/* <Route path="/" element={<Navigate to="/dashboard" />} /> */}

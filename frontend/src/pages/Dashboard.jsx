@@ -1,3 +1,5 @@
+// src/pages/Dashboard.jsx
+
 import React, { useState, useContext } from 'react';
 import {
   Container,
@@ -96,6 +98,7 @@ const Dashboard = () => {
         color="primary"
         onClick={() => setOpen(true)}
         sx={{ mb: 3 }}
+        aria-label="Create New Presentation"
       >
         New Presentation
       </Button>
@@ -124,8 +127,8 @@ const Dashboard = () => {
       </Grid>
 
       {/* Create Presentation Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Create New Presentation</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)} aria-labelledby="create-presentation-dialog">
+        <DialogTitle id="create-presentation-dialog">Create New Presentation</DialogTitle>
         <DialogContent>
           {dialogError && (
             <Alert severity="error" onClose={() => setDialogError('')} sx={{ mb: 2 }}>

@@ -1,3 +1,5 @@
+// src/pages/LoginPage.jsx
+
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import {
@@ -29,11 +31,24 @@ const LoginPage = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
-      <Typography variant="h4" gutterBottom>
+    <Container
+      maxWidth="sm"
+      sx={{
+        mt: 8,
+        backgroundColor: 'background.default',
+        p: 4,
+        borderRadius: 2,
+        boxShadow: 3,
+      }}
+    >
+      <Typography variant="h4" gutterBottom color="text.primary">
         Login
       </Typography>
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField
           label="Email"
@@ -44,6 +59,7 @@ const LoginPage = () => {
           margin="normal"
           value={form.email}
           onChange={handleChange}
+          aria-label="Email"
         />
         <TextField
           label="Password"
@@ -54,9 +70,10 @@ const LoginPage = () => {
           margin="normal"
           value={form.password}
           onChange={handleChange}
+          aria-label="Password"
         />
         <Box sx={{ mt: 3 }}>
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button type="submit" variant="contained" color="primary" fullWidth aria-label="Login">
             Login
           </Button>
         </Box>

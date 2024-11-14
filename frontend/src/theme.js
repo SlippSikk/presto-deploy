@@ -22,6 +22,10 @@ export const getDesignTokens = (mode) => ({
             default: grey[100],
             paper: '#fff',
           },
+          text: {
+            primary: grey[900],
+            secondary: grey[800],
+          },
         }
       : {
           // Palette values for dark mode
@@ -34,6 +38,10 @@ export const getDesignTokens = (mode) => ({
           background: {
             default: '#121212',
             paper: grey[900],
+          },
+          text: {
+            primary: '#fff',
+            secondary: grey[500],
           },
         }),
   },

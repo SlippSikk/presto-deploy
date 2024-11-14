@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 export const ThemeContext = createContext();
 
 /**
- * ThemeProvider component that wraps the application and provides theme data and management functions.
+ * CustomThemeProvider component that wraps the application and provides theme data and management functions.
  *
  * @param {object} props - React props.
  * @param {React.ReactNode} props.children - Child components.

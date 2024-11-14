@@ -231,7 +231,6 @@ const PresentationPreview = () => {
                       overflowWrap: 'break-word',
                       whiteSpace: 'pre-wrap',
                       width: '100%', // Ensure Typography spans the full width
-                      // Use theme's text color if needed
                     }}
                   >
                     {element.content}
