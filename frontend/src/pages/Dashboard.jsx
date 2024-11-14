@@ -1,3 +1,5 @@
+// src/pages/Dashboard.jsx
+
 import React, { useState, useContext } from 'react';
 import {
   Container,
@@ -46,6 +48,7 @@ const Dashboard = () => {
       thumbnail: '', // Placeholder; can be updated later
       description: '',
       slides: [],
+      favorited: false, // Initialize favorited to false
     };
 
     try {
@@ -73,6 +76,12 @@ const Dashboard = () => {
     );
   }
 
+  // Sort presentations: favorited first
+  const sortedPresentations = [...store.presentations].sort((a, b) => {
+    if (a.favorited === b.favorited) return 0;
+    return a.favorited ? -1 : 1;
+  });
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -92,8 +101,8 @@ const Dashboard = () => {
         New Presentation
       </Button>
       <Grid container spacing={3}>
-        {store.presentations.length > 0 ? (
-          store.presentations.map((presentation) => (
+        {sortedPresentations.length > 0 ? (
+          sortedPresentations.map((presentation) => (
             <Grid
               item
               xs={12}

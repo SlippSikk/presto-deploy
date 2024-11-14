@@ -46,48 +46,6 @@ export const StoreProvider = ({ children }) => {
     transitionType: slide.transitionType || 'none', // Default to 'none' if not set
   });
 
-  /**
-   * Updates the transition type of a specific presentation
-   *
-   * @param {string} presentationId - ID of the presentation.
-   * @param {string} newTransitionType - The new transition type ('none', 'fade', 'slideLeft', 'slideRight').
-   */
-  const updateTransitionType = async (presentationId, newTransitionType) => {
-    const updatedStore = {
-      ...store,
-      presentations: store.presentations.map((presentation) =>
-        presentation.id === presentationId
-          ? { ...presentation, transitionType: newTransitionType }
-          : presentation
-      ),
-    };
-    await updateStoreData(updatedStore);
-  };
-
-  /**
-   * Utility function to ensure each presentation has a defaultBackground property.
-   *
-   * @param {object} presentation - The presentation object to check and initialize.
-   * @returns {object} - Presentation object with defaultBackground property.
-   */
-  const ensurePresentationDefaults = (presentation) => ({
-    ...presentation,
-    transitionType: presentation.transitionType || 'none', // Add transitionType
-    defaultBackground: presentation.defaultBackground || {
-      style: 'solid',
-      color: '#ffffff',
-      gradient: {
-        direction: 'to right',
-        colors: ['#ff7e5f', '#feb47b'],
-      },
-      image: '',
-      uploadedImage: '', // To handle uploaded images
-    },
-    slides: Array.isArray(presentation.slides)
-      ? presentation.slides.map((slide) => ensureSlideBackground(slide))
-      : [ensureSlideBackground({ id: `slide-${uuidv4()}`, elements: [] })],
-  });
-
   /** 
    * Reorders the slides of a specific presentation.
    *
@@ -105,6 +63,31 @@ export const StoreProvider = ({ children }) => {
     };
     await updateStoreData(updatedStore);
   };
+
+  /**
+   * Utility function to ensure each presentation has default properties.
+   *
+   * @param {object} presentation - The presentation object to check and initialize.
+   * @returns {object} - Presentation object with default properties.
+   */
+  const ensurePresentationDefaults = (presentation) => ({
+    ...presentation,
+    favorited: presentation.favorited || false, // Initialize favorited to false if not set
+    transitionType: presentation.transitionType || 'none',
+    defaultBackground: presentation.defaultBackground || {
+      style: 'solid',
+      color: '#ffffff',
+      gradient: {
+        direction: 'to right',
+        colors: ['#ff7e5f', '#feb47b'],
+      },
+      image: '',
+      uploadedImage: '',
+    },
+    slides: Array.isArray(presentation.slides)
+      ? presentation.slides.map((slide) => ensureSlideBackground(slide))
+      : [ensureSlideBackground({ id: `slide-${uuidv4()}`, elements: [] })],
+  });
 
   /**
    * Fetches the store data when the user is authenticated.
@@ -455,7 +438,7 @@ export const StoreProvider = ({ children }) => {
         deleteElement,
         updateSlideFontFamily,
         updateDefaultBackground, 
-        updateTransitionType,
+        // updateTransitionType,
         reorderSlides,
         setStoreState,
       }}

@@ -10,11 +10,13 @@ import { StoreProvider } from './context/StoreContext';
  * Wraps the App component with StrictMode, BrowserRouter, and AuthProvider.
  */
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <AuthProvider>
-      <StoreProvider>
-        <App />
-      </StoreProvider>
-    </AuthProvider>
-  </BrowserRouter>
+  // <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <StoreProvider>
+          <App />
+        </StoreProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  // </React.StrictMode>
 );
