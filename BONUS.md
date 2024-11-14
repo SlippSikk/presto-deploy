@@ -4,3 +4,4 @@
 - Colour picker tool for gradients
 - Multiple transitions options
 - Each slide can have its own unique transition
+- Saves input content for adding components (text, image, video and code) so the data is saved if user accidentally closes the overlay.

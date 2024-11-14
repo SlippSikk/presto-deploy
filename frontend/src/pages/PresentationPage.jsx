@@ -14,12 +14,23 @@ import {
   Box,
   Alert,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Edit, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { StoreContext } from '../context/StoreContext';
 import SlideControls from '../components/SlideControls';
 import SlideEditor from '../components/SlideEditor';
 import SlideNumber from '../components/SlideNumber'; // Import SlideNumber
+
+// Import react-beautiful-dnd components
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+} from 'react-beautiful-dnd';
 
 const PresentationPage = () => {
   const { id } = useParams();
@@ -34,6 +45,7 @@ const PresentationPage = () => {
     deletePresentation,
     updateSlide,
     deleteSlide,
+    reorderSlides,
   } = useContext(StoreContext);
   
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -43,6 +55,7 @@ const PresentationPage = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newThumbnailFile, setNewThumbnailFile] = useState(null);
   const [dialogError, setDialogError] = useState('');
+  const [openRearrangeDialog, setOpenRearrangeDialog] = useState(false); // New state for rearrange dialog
 
   const defaultThumbnail = '/assets/default-thumbnail.jpg';
   const presentation = store.presentations.find((p) => p.id === id);
@@ -65,7 +78,8 @@ const PresentationPage = () => {
     }
   }, [presentation, searchParams, setSearchParams]);
 
-  // **Removed the second useEffect to prevent feedback loops**
+  // Initialize selectedTransition when presentation changes (if applicable)
+  // ... existing transition-related code ...
 
   if (!presentation) {
     return (
@@ -84,18 +98,11 @@ const PresentationPage = () => {
    * Handle adding a new slide
    */
   const handleAddSlide = async () => {
-    const newSlide = {
-      id: `slide-${Date.now()}`,
-      elements: [],
-      fontFamily: 'Arial', // Ensure new slides have a default fontFamily
-    };
     try {
-      await addSlide(id, newSlide);
+      await addSlide(id);
       
       // After adding, navigate to the new slide by updating the 'slide' param
-      // Assuming addSlide updates the store synchronously
-      const updatedSlides = [...slides, newSlide];
-      const newSlideIndex = updatedSlides.length - 1; // 0-based index
+      const newSlideIndex = slides.length; // Since a new slide is appended
       setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
     } catch (err) {
       setDialogError('Failed to add slide');
@@ -128,7 +135,7 @@ const PresentationPage = () => {
 
       setSearchParams({ slide: newSlideIndex + 1 }, { replace: true });
     } catch (err) {
-      setDialogError('Failed to delete slide.');
+      setDialogError('Failed to delete slide. Consider deleting the whole presentation.');
     }
   };
 
@@ -203,6 +210,39 @@ const PresentationPage = () => {
     await updateSlide(presentationId, slideId, updatedSlide);
   };
 
+  /**
+   * Handle drag end for rearranging slides
+   */
+  const onDragEnd = async (result) => {
+    const { destination, source } = result;
+
+    // If no destination, do nothing
+    if (!destination) return;
+
+    // If the item was dropped in the same position, do nothing
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    // Reorder slides array
+    const reorderedSlides = Array.from(slides);
+    const [movedSlide] = reorderedSlides.splice(source.index, 1);
+    reorderedSlides.splice(destination.index, 0, movedSlide);
+
+    // Update local state
+    setSlides(reorderedSlides);
+
+    // Persist the reordered slides to the store
+    try {
+      await reorderSlides(id, reorderedSlides);
+    } catch (err) {
+      setDialogError('Failed to reorder slides.');
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       {/* Back Button and Delete Presentation Button */}
@@ -250,6 +290,32 @@ const PresentationPage = () => {
         <img src={currentThumbnail} alt="Thumbnail Preview" style={{ width: '100px', height: 'auto' }} />
       </Box>
 
+      {/* Transition Type Section */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Transition Type
+        </Typography>
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel id="transition-type-select-label">Transition</InputLabel>
+          <Select
+            labelId="transition-type-select-label"
+            id="transition-type-select"
+            value={presentation.transitionType || 'none'}
+            label="Transition"
+            onChange={(e) => {
+              // Handle transition type change if applicable
+              // You may need to implement this functionality
+            }}
+            aria-label="Transition Type Selector"
+          >
+            <MenuItem value="none">None</MenuItem>
+            <MenuItem value="fade">Fade</MenuItem>
+            <MenuItem value="slideLeft">Slide Left</MenuItem>
+            <MenuItem value="slideRight">Slide Right</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
       {/* Error Alerts */}
       {error && (
         <Alert severity="error" onClose={() => {}}>
@@ -290,15 +356,90 @@ const PresentationPage = () => {
         }}
       />
 
-      {/* Add and Delete Slide Buttons */}
-      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+      {/* Add, Delete, and Rearrange Slide Buttons */}
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Button variant="contained" onClick={handleAddSlide}>
           Add Slide
         </Button>
         <Button variant="outlined" color="error" onClick={handleDeleteSlide}>
           Delete Slide
         </Button>
+        <Button variant="outlined" onClick={() => setOpenRearrangeDialog(true)}>
+          Rearrange Slides
+        </Button>
       </Box>
+
+      {/* Slide Re-arranging Dialog */}
+      <Dialog
+        open={openRearrangeDialog}
+        onClose={() => setOpenRearrangeDialog(false)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Rearrange Slides</DialogTitle>
+        <DialogContent>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="slidesDroppable" direction="horizontal">
+              {(provided) => (
+                <Box
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  sx={{
+                    display: 'flex',
+                    overflowX: 'auto',
+                    padding: 2,
+                  }}
+                >
+                  {slides.map((slide, index) => (
+                    <Draggable key={slide.id} draggableId={slide.id} index={index}>
+                      {(provided, snapshot) => (
+                        <Box
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          sx={{
+                            width: 100,
+                            height: 80,
+                            marginRight: 2,
+                            padding: 1,
+                            border: '2px solid #1976d2',
+                            borderRadius: 1,
+                            backgroundColor: snapshot.isDragging
+                              ? '#e3f2fd'
+                              : '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'grab',
+                            userSelect: 'none',
+                            boxShadow: snapshot.isDragging
+                              ? '0 4px 8px rgba(0,0,0,0.2)'
+                              : 'none',
+                            transition: 'background-color 0.2s, box-shadow 0.2s',
+                            '&:hover': {
+                              borderColor: '#115293',
+                            },
+                          }}
+                        >
+                          <Typography variant="h6" color="textPrimary">
+                            {index + 1}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </Box>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenRearrangeDialog(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Presentation Confirmation Dialog */}
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
