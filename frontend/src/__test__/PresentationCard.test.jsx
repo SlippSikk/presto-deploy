@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PresentationCard from '../components/PresentationCard';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
 import { StoreContext } from '../context/StoreContext';
 
 import { describe, it, expect, vi } from 'vitest';
@@ -86,4 +88,46 @@ describe('PresentationCard Component', () => {
       });
     });
   });
+
+  it('has accessible ARIA labels for favorite button and open link', () => {
+    renderWithContext(<PresentationCard presentation={mockPresentation} />);
+
+    const favoriteButton = screen.getByRole('button', { name: /Favorite presentation/i });
+    expect(favoriteButton).toBeInTheDocument();
+
+    const openLink = screen.getByRole('link', { name: /Open presentation Test Presentation/i });
+    expect(openLink).toBeInTheDocument();
+  });
+
+  it('renders as favorited when the presentation is initially favorited', () => {
+    const favoritedPresentation = { ...mockPresentation, favorited: true };
+    renderWithContext(<PresentationCard presentation={favoritedPresentation} />);
+
+    const favoriteButton = screen.getByRole('button', { name: /Unfavorite presentation/i });
+    expect(favoriteButton).toBeInTheDocument();
+
+    const filledStarIcon = screen.getByTestId('StarIcon'); // Ensure you add data-testid="StarIcon" to the Star component
+    expect(filledStarIcon).toBeInTheDocument();
+  });
+
+  it('navigates to the correct presentation page on "Open" button click', () => {
+    render(
+      <StoreContext.Provider value={{ updatePresentation: mockUpdatePresentation }}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<PresentationCard presentation={mockPresentation} />} />
+            <Route path="/presentation/:id" element={<div>Presentation Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </StoreContext.Provider>
+    );
+
+    expect(screen.queryByText('Presentation Page')).not.toBeInTheDocument();
+
+    const openButton = screen.getByRole('link', { name: /Open presentation Test Presentation/i });
+    fireEvent.click(openButton);
+  
+    expect(screen.getByText('Presentation Page')).toBeInTheDocument();
+  });
+
 });
