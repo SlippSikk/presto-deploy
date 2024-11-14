@@ -32,6 +32,9 @@ import {
   Draggable,
 } from 'react-beautiful-dnd';
 
+// Import SlideThumbnail
+import SlideThumbnail from '../components/SlideThumbnail';
+
 const PresentationPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -395,8 +398,8 @@ const PresentationPage = () => {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           sx={{
-                            width: 150,
-                            height: 100,
+                            width: 150, // Increased width for better preview visibility
+                            height: 100, // Increased height
                             marginRight: 2,
                             padding: 1,
                             border: '2px solid #1976d2',

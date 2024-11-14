@@ -67,6 +67,11 @@ const SlideThumbnail = ({ slide }) => {
               padding: 1,
               backgroundColor: 'rgba(255,255,255,0.7)',
               borderRadius: 1,
+              maxWidth: '90%',
+              textAlign: 'center',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {el.content.length > 20 ? `${el.content.slice(0, 20)}...` : el.content}
