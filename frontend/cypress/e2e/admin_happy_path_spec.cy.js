@@ -96,11 +96,14 @@ describe('Admin Happy Path', () => {
     cy.contains('Welcome to Presto').should('be.visible');
 
     // Click on the "Login" button
-    cy.get('button[aria-label="Login"]').click();
+    cy.get('[aria-label="Login"]').click();
+
+    // Confirm on login page
+    cy.url().should('include', '/login');
 
     // Fill out the login form
-    cy.get('input[aria-label="Email"]').type(adminEmail);
-    cy.get('input[aria-label="Password"]').type(adminPassword);
+    cy.get('input[name="email"]').type(adminEmail);
+    cy.get('input[name="password"]').type(adminPassword);
 
     // Submit the login form
     cy.get('button[aria-label="Login"]').click();
