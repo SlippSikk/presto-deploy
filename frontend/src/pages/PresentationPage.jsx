@@ -243,7 +243,7 @@ const PresentationPage = () => {
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       {/* Back Button and Delete Presentation Button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Button startIcon={<ArrowBack />} variant="contained" onClick={handleBack}>
+        <Button aria-label="Back Button" startIcon={<ArrowBack />} variant="contained" onClick={handleBack}>
           Back
         </Button>
         <Button variant="outlined" color="error" onClick={() => setOpenDeleteDialog(true)}>

@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token');
       setAuth({ token: null, user: null });
       setIsAuthenticated(false);
-      navigate('/login');
+      navigate('/');
     }
   };
 
