@@ -120,6 +120,7 @@ const PresentationCard = ({ presentation }) => {
         <Button
           size="small"
           component={Link}
+          label="openButton"
           to={`/presentation/${id}`}
           variant="outlined"
           color="primary"
