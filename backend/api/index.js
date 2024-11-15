@@ -1,7 +1,6 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
-import fs from "fs";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
 import { AccessError, InputError } from "./error";
@@ -14,7 +13,6 @@ import {
   save,
   setStore,
 } from "./service";
-const { PROD_BACKEND_PORT, USE_VERCEL_KV } = process.env;
 
 const app = express();
 
@@ -37,10 +35,6 @@ const catchErrors = (fn) => async (req, res) => {
     }
   }
 };
-
-/***************************************************************
-                       Auth Function
-***************************************************************/
 
 const authed = (fn) => async (req, res) => {
   const email = getEmailFromAuthorization(req.header("Authorization"));
@@ -75,10 +69,6 @@ app.post(
   )
 );
 
-/***************************************************************
-                       Store Functions
-***************************************************************/
-
 app.get(
   "/store",
   catchErrors(
@@ -99,18 +89,9 @@ app.put(
   )
 );
 
-/***************************************************************
-                       Running Server
-***************************************************************/
-
 app.get("/", (req, res) => res.redirect("/docs"));
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-const port = USE_VERCEL_KV
-  ? PROD_BACKEND_PORT
-  : JSON.parse(fs.readFileSync("../frontend/backend.config.json")).BACKEND_PORT;
-
-app.listen(port, () => {
-  console.log(`For API docs, navigate to http://localhost:${port}`);
-});
+// Do not listen on a port; export the app
+export default app;
