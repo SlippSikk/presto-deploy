@@ -156,5 +156,30 @@ describe('Admin Alternative Paths', () => {
 
   });
 
+  it('Handles login with incorrect credentials', () => {
+    cy.visit('http://localhost:3000/');
 
+    // Click on the "Login" button
+    cy.get('[aria-label="Login"]').click();
+
+    // Attempt to login with incorrect password
+    cy.get('input[name="email"]').type(existingAdminEmail);
+    cy.get('input[name="password"]').type('WrongPassword!');
+    cy.get('button[aria-label="Login"]').click();
+
+    // Verify error message is displayed
+    cy.contains('Invalid username or password').should('be.visible');
+
+    // Ensure user remains on the login page
+    cy.url().should('include', '/login');
+  });
+
+  it('Prevents accessing dashboard without authentication', () => {
+    // Attempt to visit the dashboard directly without logging in
+    cy.visit('http://localhost:3000/dashboard');
+
+    // Verify redirection to the login page
+    cy.url().should('include', '/login');
+    cy.contains('Login').should('be.visible');
+  });
 });
