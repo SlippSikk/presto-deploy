@@ -263,7 +263,7 @@ const SlideEditor = ({ presentationId, slide, updateSlide }) => {
               }}
             />
           )}
-          <VideoBlock src={element.src} autoPlay={element.autoPlay} />
+          <VideoBlock src={element.src} autoPlay={false} />
         </Box>
       );
       break;
