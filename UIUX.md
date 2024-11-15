@@ -16,5 +16,9 @@
 - White space is used effectively to reduce cognitive load and associate elements with each other
 - Usage of aria labels for increased accessibility usability
 - Presentation cards on dashboard provide user feedback when hovering over them providing good affordance.
-- Favouriting presentations provides users ease in quickly identifying important presentations. 
+- Favouriting presentations provides users ease in quickly identifying important presentations.
+- Video only auto plays when being previewed and not in the editor
+- Delete buttons are coloured red to signify caution deliver an intuitive meaning to the users
+- Allow for multiple different fonts to give users more choice allowing for a more enjoyable user experience
+- Allow for multiple transitions giving users mroe freedom to design their presentation. Enhancign user satisfation
 
