@@ -3,11 +3,8 @@
 describe('Admin Alternative Paths', () => {
   const existingAdminEmail = `existing_admin_${Date.now()}@example.com`; // Pre-existing email
   const adminPassword = 'SecurePass123!';
-  const presentationName = `Presentation_${Date.now()}`;
   const invalidEmail = `invalid_email`; // Not a valid email format
   const mismatchedPassword = 'SecurePass456!';
-  const shortPassword = '123'; // Password too short
-  const invalidImagePath = 'invalid_file.txt'; // Unsupported file type
 
   before(() => {
     // Pre-register an admin to test duplicate registration
